@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections.Generic;
 
 public class InteractableObject : MonoBehaviour
 {
@@ -57,17 +56,17 @@ public class InteractableObject : MonoBehaviour
 
         return baseMessage;
     }
+
     private int GetFountainCost()
     {
-        GameManager gm = GameManager.Instance;
-        List<int> costs = gm.fountainCosts;
+        GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
 
-        // Use reflection to access private fountainUseCount
-        var field = typeof(GameManager).GetField("fountainUseCount",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        int useCount = (int)field.GetValue(gm);
+        if (gameManager == null)
+        {
+            return 0;
+        }
 
-        return (useCount < costs.Count) ? costs[useCount] : costs[costs.Count - 1];
+        return gameManager.GetCurrentFountainCost();
     }
 
     private int GetShopCost(ShopManager.ShopType type)

@@ -37,14 +37,14 @@ public class ShopManager : MonoBehaviour
             player.attack += atkBonusPerUpgrade;
             atkUpgradeIndex++;
             Debug.Log("Purchased ATK upgrade!");
-            AudioManager.Instance.PlaySFX("upgrade");
+            PlayUpgradeSFX();
         }
         else
         {
             player.defense += defBonusPerUpgrade;
             defUpgradeIndex++;
             Debug.Log("Purchased DEF upgrade!");
-            AudioManager.Instance.PlaySFX("upgrade");
+            PlayUpgradeSFX();
         }
     }
 
@@ -54,6 +54,14 @@ public class ShopManager : MonoBehaviour
         index = Mathf.Clamp(index, 0, upgradeCosts.Length - 1);
         return upgradeCosts[index];
     }
-}    
 
+    private void PlayUpgradeSFX()
+    {
+        AudioManager audioManager = Object.FindFirstObjectByType<AudioManager>();
 
+        if (audioManager != null)
+        {
+            audioManager.PlaySFX("upgrade");
+        }
+    }
+}

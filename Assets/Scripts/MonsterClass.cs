@@ -18,7 +18,13 @@ public class MonsterClass : MonoBehaviour
         currentDef -= amount;
         if (currentDef <= 0)
         {
-            GameManager.Instance.MonsterKilled(this);
+            GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
+
+            if (gameManager != null)
+            {
+                gameManager.MonsterKilled(this);
+            }
+
             gameObject.SetActive(false); // Disable prefab on death; previously destroy
         }
     }

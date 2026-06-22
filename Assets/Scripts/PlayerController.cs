@@ -106,7 +106,11 @@ public class PlayerController : MonoBehaviour
             if (monsterHit != null && monsterHit.TryGetComponent(out MonsterClass monster))
             {
                 Debug.Log("Hit a monster.");
-                GameManager.Instance.StartCombat(GetComponent<PlayerClass>(), monster);
+                GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
+                if (gameManager != null)
+                {
+                    gameManager.StartCombat(GetComponent<PlayerClass>(), monster);
+                }
                 BumpBack();
             }
 
@@ -124,7 +128,11 @@ public class PlayerController : MonoBehaviour
             if (interactableHit != null && interactableHit.TryGetComponent(out InteractableObject interactable))
             {
                 Debug.Log("Hit an interactable object.");
-                GameManager.Instance.InteractWithObject(interactable);
+                GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
+                if (gameManager != null)
+                {
+                    gameManager.InteractWithObject(interactable);
+                }
 
                 // Only show message if it's a sign
                 if (interactable.objectType == InteractableObject.InteractableType.Sign)

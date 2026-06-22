@@ -10,7 +10,12 @@ public class PlayerClass : MonoBehaviour
     {
         if (collision.gameObject.TryGetComponent(out MonsterClass monster))
         {
-            GameManager.Instance.StartCombat(this, monster);
+            GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
+
+            if (gameManager != null)
+            {
+                gameManager.StartCombat(this, monster);
+            }
         }
     }
 
@@ -19,7 +24,12 @@ public class PlayerClass : MonoBehaviour
         defense -= amount;
         if (defense <= 0)
         {
-            GameManager.Instance.GameOver();
+            GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
+
+            if (gameManager != null)
+            {
+                gameManager.GameOver();
+            }
         }
     }
 
