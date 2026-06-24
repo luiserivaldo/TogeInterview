@@ -7,15 +7,31 @@ public class MonsterClass : MonoBehaviour
     public MonsterStat_ScriptableObject statsData;
     public int attack = 1;
     [FormerlySerializedAs("defense")]
-    public int maxDef = 1;
-    public int currentDef = 1;
+    [FormerlySerializedAs("maxDef")]
+    public int maxHp = 1;
+    public int currentHp;
+    public int maxDef;
+    public int currentDef;
     public int money = 1;
 
     public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? gameObject.name : displayName;
+    public bool IsDefeated => currentHp <= 0;
 
     private void Start()
     {
         InitializeFromStats();
+
+        if (maxHp <= 0)
+        {
+            maxHp = maxDef > 0 ? maxDef : 1;
+        }
+
+        if (maxDef <= 0)
+        {
+            maxDef = maxHp;
+        }
+
+        currentHp = maxHp;
         currentDef = maxDef;
         MonsterManager.Instance.RegisterMonster(this);
     }
@@ -33,28 +49,31 @@ public class MonsterClass : MonoBehaviour
         }
 
         attack = statsData.baseAttack;
-        maxDef = statsData.baseDefense;
+        maxHp = statsData.baseDefense;
+
+        if (maxDef <= 0)
+        {
+            maxDef = statsData.baseDefense;
+        }
+
         money = statsData.moneyValue;
+    }
+
+    public int ApplyDamage(int amount)
+    {
+        int damage = Mathf.Max(0, Mathf.Min(amount, currentHp));
+        currentHp = Mathf.Max(0, currentHp - damage);
+        return damage;
     }
 
     public void TakeDamage(int amount)
     {
-        currentDef -= amount;
-        if (currentDef <= 0)
-        {
-            GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
-
-            if (gameManager != null)
-            {
-                gameManager.MonsterKilled(this);
-            }
-
-            gameObject.SetActive(false);
-        }
+        ApplyDamage(amount);
     }
 
     public void Respawn()
     {
+        currentHp = maxHp;
         currentDef = maxDef;
         gameObject.SetActive(true);
     }

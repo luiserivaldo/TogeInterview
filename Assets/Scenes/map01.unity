@@ -251,6 +251,9 @@ MonoBehaviour:
   heroViewportX: 0.25
   enemyViewportX: 0.75
   combatViewportY: 0.5
+  actionPauseDuration: 0.8
+  defeatFadeDuration: 0.4
+  conclusionPauseDuration: 2
 --- !u!4 &30908808
 Transform:
   m_ObjectHideFlags: 0

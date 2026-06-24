@@ -41,7 +41,8 @@ public class ShopManager : MonoBehaviour
         }
         else
         {
-            player.defense += defBonusPerUpgrade;
+            player.maxDef += defBonusPerUpgrade;
+            player.currentDef += defBonusPerUpgrade;
             defUpgradeIndex++;
             Debug.Log("Purchased DEF upgrade!");
             PlayUpgradeSFX();

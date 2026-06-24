@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class BattleManager : MonoBehaviour
 {
+    private const string HeroDisplayName = "Hero";
+
     private static BattleManager instance;
 
     [Header("Transition")]
@@ -13,6 +15,11 @@ public class BattleManager : MonoBehaviour
     [SerializeField] [Range(0.05f, 0.45f)] private float heroViewportX = 0.25f;
     [SerializeField] [Range(0.55f, 0.95f)] private float enemyViewportX = 0.75f;
     [SerializeField] [Range(0.1f, 0.9f)] private float combatViewportY = 0.5f;
+
+    [Header("Turn Combat")]
+    [SerializeField] private float actionPauseDuration = 0.05f;
+    [SerializeField] private float defeatFadeDuration = 0.4f;
+    [SerializeField] private float conclusionPauseDuration = 0.2f;
 
     private PlayerClass activePlayer;
     private MonsterClass activeMonster;
@@ -27,6 +34,7 @@ public class BattleManager : MonoBehaviour
     private Vector3 monsterReturnPosition;
     private Vector3 playerStartScale;
     private Vector3 monsterStartScale;
+    private int playerBattleMaxHp;
 
     private readonly List<SpriteRenderer> hiddenCreatureRenderers = new();
     private readonly List<SpriteSortingState> activeBattleSpriteStates = new();
@@ -87,6 +95,7 @@ public class BattleManager : MonoBehaviour
         monsterStartPosition = activeMonster.transform.position;
         playerStartScale = activePlayer.transform.localScale;
         monsterStartScale = activeMonster.transform.localScale;
+        playerBattleMaxHp = Mathf.Max(1, activePlayer.maxHp);
         playerReturnPosition = playerStartPosition;
         monsterReturnPosition = monsterStartPosition;
 
@@ -96,6 +105,9 @@ public class BattleManager : MonoBehaviour
             activePlayerController.PrepareForBattleReturn();
             activePlayerController.enabled = false;
         }
+
+        ResetCombatantAlpha(activePlayer.gameObject);
+        ResetCombatantAlpha(activeMonster.gameObject);
 
         battleActive = true;
         transitionRunning = true;
@@ -111,8 +123,7 @@ public class BattleManager : MonoBehaviour
             return;
         }
 
-        UIManager.Instance.SetCombatLog("Attack is not implemented yet.");
-        UIManager.Instance.SelectAttackAction();
+        StartCoroutine(ResolvePlayerActionRoutine(BattleAction.Attack));
     }
 
     public void OnItemPressed()
@@ -122,8 +133,7 @@ public class BattleManager : MonoBehaviour
             return;
         }
 
-        UIManager.Instance.SetCombatLog("Item is not implemented yet.");
-        UIManager.Instance.SelectItemAction();
+        StartCoroutine(ResolvePlayerActionRoutine(BattleAction.Item));
     }
 
     public void OnRunPressed()
@@ -133,7 +143,13 @@ public class BattleManager : MonoBehaviour
             return;
         }
 
-        StartCoroutine(ExitBattleRoutine());
+        StartCoroutine(ExitBattleRoutine("You ran away.", false, false));
+    }
+
+    private enum BattleAction
+    {
+        Attack,
+        Item,
     }
 
     private IEnumerator BeginBattleRoutine()
@@ -156,19 +172,110 @@ public class BattleManager : MonoBehaviour
 
         SetOverworldCreatureSpritesVisible(false);
         UIManager.Instance.ShowBattleUI();
-        UIManager.Instance.BindBattle(activePlayer, activeMonster);
+        UIManager.Instance.BindBattle(activePlayer, activeMonster, true, playerBattleMaxHp);
         UIManager.Instance.SetCombatLog($"A {activeMonster.DisplayName} has appeared!");
+        UIManager.Instance.AppendCombatLog($"{HeroDisplayName} moves first.");
         UIManager.Instance.SetBattleButtonsInteractable(true);
         UIManager.Instance.SelectBattleDefaultAction();
 
         transitionRunning = false;
     }
 
-    private IEnumerator ExitBattleRoutine()
+    private IEnumerator ResolvePlayerActionRoutine(BattleAction action)
     {
         transitionRunning = true;
         UIManager.Instance.SetBattleButtonsInteractable(false);
-        UIManager.Instance.SetCombatLog("You ran away.");
+
+        if (action == BattleAction.Attack)
+        {
+            int damage = activeMonster.ApplyDamage(activePlayer.attack);
+            UIManager.Instance.AppendCombatLog($"{HeroDisplayName} attacks {activeMonster.DisplayName} for {damage}!");
+            UIManager.Instance.BindBattle(activePlayer, activeMonster, false, playerBattleMaxHp);
+        }
+        else
+        {
+            UIManager.Instance.AppendCombatLog($"{HeroDisplayName} tries to use an item, but nothing happens.");
+            UIManager.Instance.BindBattle(activePlayer, activeMonster, false, playerBattleMaxHp);
+        }
+
+        if (activeMonster.IsDefeated)
+        {
+            yield return HandleEnemyDefeatRoutine();
+            yield break;
+        }
+
+        yield return new WaitForSeconds(actionPauseDuration);
+
+        int incomingDamage = activePlayer.ApplyDamage(activeMonster.attack);
+        UIManager.Instance.AppendCombatLog($"{activeMonster.DisplayName} attacks {HeroDisplayName} for {incomingDamage}!");
+        UIManager.Instance.BindBattle(activePlayer, activeMonster, activePlayer.IsDefeated ? false : true, playerBattleMaxHp);
+
+        if (activePlayer.IsDefeated)
+        {
+            yield return HandlePlayerDefeatRoutine();
+            yield break;
+        }
+
+        yield return new WaitForSeconds(actionPauseDuration);
+
+        UIManager.Instance.SetBattleButtonsInteractable(true);
+        UIManager.Instance.SelectBattleDefaultAction();
+        UIManager.Instance.BindBattle(activePlayer, activeMonster, true, playerBattleMaxHp);
+        transitionRunning = false;
+    }
+
+    private IEnumerator HandleEnemyDefeatRoutine()
+    {
+        UIManager.Instance.BindBattle(activePlayer, activeMonster, false, playerBattleMaxHp);
+        UIManager.Instance.AppendCombatLog($"{activeMonster.DisplayName} has been defeated! Earn {activeMonster.money} GP!");
+
+        yield return new WaitForSeconds(conclusionPauseDuration);
+
+        GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
+        if (gameManager != null)
+        {
+            gameManager.MonsterKilled(activeMonster);
+        }
+
+        yield return ExitBattleRoutine(string.Empty, true, true);
+    }
+
+    private IEnumerator HandlePlayerDefeatRoutine()
+    {
+        UIManager.Instance.BindBattle(activePlayer, activeMonster, false, playerBattleMaxHp);
+        UIManager.Instance.AppendCombatLog($"{HeroDisplayName} has been defeated...");
+
+        yield return FadeCombatantRoutine(activePlayer.gameObject, 1f, 0f, defeatFadeDuration);
+        yield return new WaitForSeconds(conclusionPauseDuration);
+
+        SetOverworldCreatureSpritesVisible(true);
+        RestoreActiveBattleSpriteSorting();
+        UIManager.Instance.ShowOverworldUI();
+
+        battleActive = false;
+        transitionRunning = false;
+        hiddenCreatureRenderers.Clear();
+        activePlayer = null;
+        activeMonster = null;
+        activePlayerController = null;
+
+        GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
+        if (gameManager != null)
+        {
+            gameManager.GameOver();
+        }
+    }
+
+    private IEnumerator ExitBattleRoutine(string logMessage, bool deactivateMonster, bool grantPlayerTurnOnExit)
+    {
+        transitionRunning = true;
+        UIManager.Instance.SetBattleButtonsInteractable(false);
+
+        if (!string.IsNullOrWhiteSpace(logMessage))
+        {
+            UIManager.Instance.AppendCombatLog(logMessage);
+        }
+
         UIManager.Instance.ShowOverworldUI();
         SetOverworldCreatureSpritesVisible(true);
 
@@ -184,6 +291,13 @@ public class BattleManager : MonoBehaviour
             exitDuration);
 
         RestoreActiveBattleSpriteSorting();
+        ResetCombatantAlpha(activePlayer.gameObject);
+        ResetCombatantAlpha(activeMonster.gameObject);
+
+        if (deactivateMonster && activeMonster != null)
+        {
+            activeMonster.gameObject.SetActive(false);
+        }
 
         if (activePlayerController != null)
         {
@@ -196,6 +310,63 @@ public class BattleManager : MonoBehaviour
         hiddenCreatureRenderers.Clear();
         battleActive = false;
         transitionRunning = false;
+
+        if (grantPlayerTurnOnExit)
+        {
+            UIManager.Instance.UpdateUI();
+        }
+    }
+
+    private IEnumerator FadeCombatantRoutine(GameObject combatant, float fromAlpha, float toAlpha, float duration)
+    {
+        if (combatant == null)
+        {
+            yield break;
+        }
+
+        SpriteRenderer[] renderers = combatant.GetComponentsInChildren<SpriteRenderer>(true);
+        if (renderers.Length == 0)
+        {
+            yield break;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float alpha = Mathf.Lerp(fromAlpha, toAlpha, t);
+            SetRenderersAlpha(renderers, alpha);
+            yield return null;
+        }
+
+        SetRenderersAlpha(renderers, toAlpha);
+    }
+
+    private void ResetCombatantAlpha(GameObject combatant)
+    {
+        if (combatant == null)
+        {
+            return;
+        }
+
+        SpriteRenderer[] renderers = combatant.GetComponentsInChildren<SpriteRenderer>(true);
+        SetRenderersAlpha(renderers, 1f);
+    }
+
+    private void SetRenderersAlpha(SpriteRenderer[] renderers, float alpha)
+    {
+        foreach (SpriteRenderer renderer in renderers)
+        {
+            if (renderer == null)
+            {
+                continue;
+            }
+
+            Color color = renderer.color;
+            color.a = alpha;
+            renderer.color = color;
+        }
     }
 
     private void SetOverworldCreatureSpritesVisible(bool visible)

@@ -7,6 +7,8 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    private const string HeroDisplayName = "Hero";
+
     private PlayerClass player;
     public static UIManager Instance;
 
@@ -68,7 +70,7 @@ public class UIManager : MonoBehaviour
         if (player != null)
         {
             atkText.text = player.attack.ToString();
-            defText.text = player.defense.ToString();
+            defText.text = player.currentDef.ToString();
             moneyText.text = player.money.ToString();
         }
     }
@@ -142,7 +144,7 @@ public class UIManager : MonoBehaviour
         SelectBattleAction(itemButton);
     }
 
-    public void BindBattle(PlayerClass playerUnit, MonsterClass monsterUnit)
+    public void BindBattle(PlayerClass playerUnit, MonsterClass monsterUnit, bool isPlayerTurn = true, int heroMaxHp = -1)
     {
         if (playerUnit == null || monsterUnit == null)
         {
@@ -151,9 +153,10 @@ public class UIManager : MonoBehaviour
 
         Sprite heroSprite = GetUnitSprite(playerUnit.gameObject);
         Sprite enemySprite = GetUnitSprite(monsterUnit.gameObject);
+        int resolvedHeroMaxHp = heroMaxHp > 0 ? heroMaxHp : Mathf.Max(1, playerUnit.maxHp);
 
-        heroUI?.SetUnit("Hero", playerUnit.defense, playerUnit.defense, playerUnit.attack, playerUnit.defense, heroSprite, true);
-        enemyUI?.SetUnit(monsterUnit.DisplayName, monsterUnit.currentDef, monsterUnit.maxDef, monsterUnit.attack, monsterUnit.maxDef, enemySprite, false);
+        heroUI?.SetUnit(HeroDisplayName, playerUnit.currentHp, resolvedHeroMaxHp, playerUnit.attack, playerUnit.currentDef, heroSprite, isPlayerTurn);
+        enemyUI?.SetUnit(monsterUnit.DisplayName, monsterUnit.currentHp, monsterUnit.maxHp, monsterUnit.attack, monsterUnit.currentDef, enemySprite, !isPlayerTurn);
     }
 
     public void SetCombatLog(string message)
@@ -162,6 +165,18 @@ public class UIManager : MonoBehaviour
         {
             combatLogText.text = message;
         }
+    }
+
+    public void AppendCombatLog(string message)
+    {
+        if (combatLogText == null || string.IsNullOrWhiteSpace(message))
+        {
+            return;
+        }
+
+        combatLogText.text = string.IsNullOrWhiteSpace(combatLogText.text)
+            ? message
+            : combatLogText.text + "\n" + message;
     }
 
     public void SetBattleButtonsInteractable(bool enabled)
