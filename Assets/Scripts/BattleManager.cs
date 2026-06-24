@@ -112,6 +112,7 @@ public class BattleManager : MonoBehaviour
         }
 
         UIManager.Instance.SetCombatLog("Attack is not implemented yet.");
+        UIManager.Instance.SelectAttackAction();
     }
 
     public void OnItemPressed()
@@ -122,6 +123,7 @@ public class BattleManager : MonoBehaviour
         }
 
         UIManager.Instance.SetCombatLog("Item is not implemented yet.");
+        UIManager.Instance.SelectItemAction();
     }
 
     public void OnRunPressed()
@@ -157,6 +159,7 @@ public class BattleManager : MonoBehaviour
         UIManager.Instance.BindBattle(activePlayer, activeMonster);
         UIManager.Instance.SetCombatLog($"A {activeMonster.DisplayName} has appeared!");
         UIManager.Instance.SetBattleButtonsInteractable(true);
+        UIManager.Instance.SelectBattleDefaultAction();
 
         transitionRunning = false;
     }

@@ -1,5 +1,7 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -99,6 +101,8 @@ public class UIManager : MonoBehaviour
 
     public void ShowOverworldUI()
     {
+        ClearSelectedUI();
+
         if (overworldUIRoot != null)
         {
             overworldUIRoot.SetActive(true);
@@ -121,6 +125,21 @@ public class UIManager : MonoBehaviour
         {
             battleUIRoot.SetActive(true);
         }
+    }
+
+    public void SelectBattleDefaultAction()
+    {
+        SelectBattleAction(attackButton);
+    }
+
+    public void SelectAttackAction()
+    {
+        SelectBattleAction(attackButton);
+    }
+
+    public void SelectItemAction()
+    {
+        SelectBattleAction(itemButton);
     }
 
     public void BindBattle(PlayerClass playerUnit, MonsterClass monsterUnit)
@@ -161,6 +180,41 @@ public class UIManager : MonoBehaviour
         {
             runButton.interactable = enabled;
         }
+    }
+
+    private void SelectBattleAction(Button button)
+    {
+        if (!isActiveAndEnabled)
+        {
+            return;
+        }
+
+        StopAllCoroutines();
+        StartCoroutine(SelectBattleActionRoutine(button));
+    }
+
+    private IEnumerator SelectBattleActionRoutine(Button button)
+    {
+        yield return null;
+
+        if (button == null || !button.IsActive() || !button.interactable)
+        {
+            yield break;
+        }
+
+        ClearSelectedUI();
+        button.Select();
+        EventSystem.current?.SetSelectedGameObject(button.gameObject);
+    }
+
+    private void ClearSelectedUI()
+    {
+        if (EventSystem.current == null)
+        {
+            return;
+        }
+
+        EventSystem.current.SetSelectedGameObject(null);
     }
 
     private void ConfigureBattleActions()
