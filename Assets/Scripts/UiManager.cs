@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,7 +9,9 @@ using UnityEngine.UI;
 public class UIManager : MonoBehaviour
 {
     private const string HeroDisplayName = "Hero";
+    private const int MaxCombatLogLines = 3;
 
+    private readonly Queue<string> combatLogEntries = new();
     private PlayerClass player;
     public static UIManager Instance;
 
@@ -161,22 +164,31 @@ public class UIManager : MonoBehaviour
 
     public void SetCombatLog(string message)
     {
-        if (combatLogText != null)
+        combatLogEntries.Clear();
+
+        if (!string.IsNullOrWhiteSpace(message))
         {
-            combatLogText.text = message;
+            combatLogEntries.Enqueue(message);
         }
+
+        RefreshCombatLogText();
     }
 
     public void AppendCombatLog(string message)
     {
-        if (combatLogText == null || string.IsNullOrWhiteSpace(message))
+        if (string.IsNullOrWhiteSpace(message))
         {
             return;
         }
 
-        combatLogText.text = string.IsNullOrWhiteSpace(combatLogText.text)
-            ? message
-            : combatLogText.text + "\n" + message;
+        combatLogEntries.Enqueue(message);
+
+        while (combatLogEntries.Count > MaxCombatLogLines)
+        {
+            combatLogEntries.Dequeue();
+        }
+
+        RefreshCombatLogText();
     }
 
     public void SetBattleButtonsInteractable(bool enabled)
@@ -230,6 +242,18 @@ public class UIManager : MonoBehaviour
         }
 
         EventSystem.current.SetSelectedGameObject(null);
+    }
+
+    private void RefreshCombatLogText()
+    {
+        if (combatLogText == null)
+        {
+            return;
+        }
+
+        combatLogText.text = combatLogEntries.Count == 0
+            ? string.Empty
+            : string.Join("\n", combatLogEntries);
     }
 
     private void ConfigureBattleActions()
