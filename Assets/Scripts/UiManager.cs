@@ -130,8 +130,11 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        heroUI?.SetUnit("Hero", playerUnit.defense, playerUnit.defense, playerUnit.attack, playerUnit.defense, true);
-        enemyUI?.SetUnit(monsterUnit.DisplayName, monsterUnit.currentDef, monsterUnit.maxDef, monsterUnit.attack, monsterUnit.maxDef, false);
+        Sprite heroSprite = GetUnitSprite(playerUnit.gameObject);
+        Sprite enemySprite = GetUnitSprite(monsterUnit.gameObject);
+
+        heroUI?.SetUnit("Hero", playerUnit.defense, playerUnit.defense, playerUnit.attack, playerUnit.defense, heroSprite, true);
+        enemyUI?.SetUnit(monsterUnit.DisplayName, monsterUnit.currentDef, monsterUnit.maxDef, monsterUnit.attack, monsterUnit.maxDef, enemySprite, false);
     }
 
     public void SetCombatLog(string message)
@@ -165,6 +168,17 @@ public class UIManager : MonoBehaviour
         BindButton(attackButton, BattleManager.Instance.OnAttackPressed);
         BindButton(itemButton, BattleManager.Instance.OnItemPressed);
         BindButton(runButton, BattleManager.Instance.OnRunPressed);
+    }
+
+    private Sprite GetUnitSprite(GameObject unitObject)
+    {
+        if (unitObject == null)
+        {
+            return null;
+        }
+
+        SpriteRenderer spriteRenderer = unitObject.GetComponentInChildren<SpriteRenderer>(true);
+        return spriteRenderer != null ? spriteRenderer.sprite : null;
     }
 
     private void BindButton(Button button, UnityEngine.Events.UnityAction action)

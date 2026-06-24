@@ -26,7 +26,7 @@ public class BattleUnitUI : MonoBehaviour
         EnsureDefText();
     }
 
-    public void SetUnit(string displayName, int currentHp, int maxHp, int attack, int defense, bool isTurnOwner)
+    public void SetUnit(string displayName, int currentHp, int maxHp, int attack, int defense, Sprite unitSprite, bool isTurnOwner)
     {
         AutoBind();
 
@@ -59,8 +59,10 @@ public class BattleUnitUI : MonoBehaviour
 
         if (turnIndicator != null)
         {
-            turnIndicator.enabled = isTurnOwner;
-            turnIndicator.color = isTurnOwner ? new Color(1f, 0.87f, 0.2f, 1f) : new Color(1f, 1f, 1f, 0f);
+            turnIndicator.sprite = unitSprite;
+            turnIndicator.preserveAspect = true;
+            turnIndicator.enabled = unitSprite != null;
+            turnIndicator.color = isTurnOwner ? Color.white : new Color(1f, 1f, 1f, 0.75f);
         }
     }
 

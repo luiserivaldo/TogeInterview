@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BattleManager : MonoBehaviour
@@ -22,8 +23,12 @@ public class BattleManager : MonoBehaviour
 
     private Vector3 playerStartPosition;
     private Vector3 monsterStartPosition;
+    private Vector3 playerReturnPosition;
+    private Vector3 monsterReturnPosition;
     private Vector3 playerStartScale;
     private Vector3 monsterStartScale;
+
+    private readonly List<SpriteRenderer> hiddenCreatureRenderers = new();
 
     public static BattleManager Instance
     {
@@ -74,14 +79,18 @@ public class BattleManager : MonoBehaviour
         monsterStartPosition = activeMonster.transform.position;
         playerStartScale = activePlayer.transform.localScale;
         monsterStartScale = activeMonster.transform.localScale;
-
-        battleActive = true;
-        transitionRunning = true;
+        playerReturnPosition = playerStartPosition;
+        monsterReturnPosition = monsterStartPosition;
 
         if (activePlayerController != null)
         {
+            playerReturnPosition = activePlayerController.GetSafeReturnPosition();
+            activePlayerController.PrepareForBattleReturn();
             activePlayerController.enabled = false;
         }
+
+        battleActive = true;
+        transitionRunning = true;
 
         StartCoroutine(BeginBattleRoutine());
     }
@@ -134,6 +143,7 @@ public class BattleManager : MonoBehaviour
             monsterStartScale * scaleMultiplier,
             entryDuration);
 
+        SetOverworldCreatureSpritesVisible(false);
         UIManager.Instance.ShowBattleUI();
         UIManager.Instance.BindBattle(activePlayer, activeMonster);
         UIManager.Instance.SetCombatLog($"A {activeMonster.DisplayName} has appeared!");
@@ -147,19 +157,19 @@ public class BattleManager : MonoBehaviour
         transitionRunning = true;
         UIManager.Instance.SetBattleButtonsInteractable(false);
         UIManager.Instance.SetCombatLog("You ran away.");
+        UIManager.Instance.ShowOverworldUI();
+        SetOverworldCreatureSpritesVisible(true);
 
         yield return AnimateCombatants(
             activePlayer.transform.position,
-            playerStartPosition,
+            playerReturnPosition,
             activePlayer.transform.localScale,
             playerStartScale,
             activeMonster.transform.position,
-            monsterStartPosition,
+            monsterReturnPosition,
             activeMonster.transform.localScale,
             monsterStartScale,
             exitDuration);
-
-        UIManager.Instance.ShowOverworldUI();
 
         if (activePlayerController != null)
         {
@@ -169,8 +179,66 @@ public class BattleManager : MonoBehaviour
         activePlayer = null;
         activeMonster = null;
         activePlayerController = null;
+        hiddenCreatureRenderers.Clear();
         battleActive = false;
         transitionRunning = false;
+    }
+
+    private void SetOverworldCreatureSpritesVisible(bool visible)
+    {
+        if (!visible)
+        {
+            hiddenCreatureRenderers.Clear();
+
+            MonsterClass[] monsters = Object.FindObjectsByType<MonsterClass>(FindObjectsSortMode.None);
+            foreach (MonsterClass monster in monsters)
+            {
+                if (monster == null || monster == activeMonster)
+                {
+                    continue;
+                }
+
+                AddCreatureRenderers(monster.gameObject);
+            }
+
+            foreach (SpriteRenderer renderer in hiddenCreatureRenderers)
+            {
+                renderer.enabled = false;
+            }
+
+            return;
+        }
+
+        foreach (SpriteRenderer renderer in hiddenCreatureRenderers)
+        {
+            if (renderer != null)
+            {
+                renderer.enabled = true;
+            }
+        }
+    }
+
+    private void AddCreatureRenderers(GameObject creature)
+    {
+        if (creature == null)
+        {
+            return;
+        }
+
+        if ((activePlayer != null && creature == activePlayer.gameObject) ||
+            (activeMonster != null && creature == activeMonster.gameObject))
+        {
+            return;
+        }
+
+        SpriteRenderer[] renderers = creature.GetComponentsInChildren<SpriteRenderer>(true);
+        foreach (SpriteRenderer renderer in renderers)
+        {
+            if (renderer != null && renderer.enabled && !hiddenCreatureRenderers.Contains(renderer))
+            {
+                hiddenCreatureRenderers.Add(renderer);
+            }
+        }
     }
 
     private Vector3 GetViewportWorldPosition(float viewportX, float viewportY, float worldZ)

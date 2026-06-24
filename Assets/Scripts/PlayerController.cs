@@ -130,6 +130,23 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public Vector3 GetSafeReturnPosition()
+    {
+        return SnapToGrid(lastPosition);
+    }
+
+    public void PrepareForBattleReturn()
+    {
+        inputCooldown = inputCooldownDuration;
+        isBumping = false;
+        bumpTimer = 0f;
+
+        Vector3 safePosition = GetSafeReturnPosition();
+        bumpStart = safePosition;
+        bumpTarget = safePosition;
+        locationPointer.position = safePosition;
+    }
+
     private bool MonsterAtPosition(Vector3 position)
     {
         Collider2D hit = Physics2D.OverlapCircle(position, 0.2f);
