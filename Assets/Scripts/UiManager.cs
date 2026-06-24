@@ -1,10 +1,16 @@
-using UnityEngine;
 using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
     private PlayerClass player;
     public static UIManager Instance;
+
+    [Header("UI Roots")]
+    [SerializeField] private GameObject overworldUIRoot;
+    [SerializeField] private GameObject battleUIRoot;
 
     [Header("UI References")]
     public TextMeshProUGUI atkText;
@@ -14,23 +20,39 @@ public class UIManager : MonoBehaviour
     [Header("Sign Elements")]
     public GameObject signTextBox;
     public GameObject bountyBoardPanel;
-    public TextMeshProUGUI messageText; // Replace with TMP_Text if using TextMeshPro
+    public TextMeshProUGUI messageText;
 
     [Header("Game Over Elements")]
     public GameObject gameOverPanel;
 
+    [Header("Battle Elements")]
+    [SerializeField] private BattleUnitUI heroUI;
+    [SerializeField] private BattleUnitUI enemyUI;
+    [SerializeField] private TextMeshProUGUI combatLogText;
+    [SerializeField] private Button attackButton;
+    [SerializeField] private Button itemButton;
+    [SerializeField] private Button runButton;
+
     private void Awake()
     {
         if (Instance == null)
+        {
             Instance = this;
+        }
         else
+        {
             Destroy(gameObject);
+            return;
+        }
+
+        AutoWireSceneReferences();
+        ShowOverworldUI();
+        ConfigureBattleActions();
     }
 
     private void Start()
     {
         player = Object.FindFirstObjectByType<PlayerClass>();
-
         UpdateUI();
     }
 
@@ -73,5 +95,166 @@ public class UIManager : MonoBehaviour
     public void ShowGameOver()
     {
         gameOverPanel.SetActive(true);
+    }
+
+    public void ShowOverworldUI()
+    {
+        if (overworldUIRoot != null)
+        {
+            overworldUIRoot.SetActive(true);
+        }
+
+        if (battleUIRoot != null)
+        {
+            battleUIRoot.SetActive(false);
+        }
+    }
+
+    public void ShowBattleUI()
+    {
+        if (overworldUIRoot != null)
+        {
+            overworldUIRoot.SetActive(false);
+        }
+
+        if (battleUIRoot != null)
+        {
+            battleUIRoot.SetActive(true);
+        }
+    }
+
+    public void BindBattle(PlayerClass playerUnit, MonsterClass monsterUnit)
+    {
+        if (playerUnit == null || monsterUnit == null)
+        {
+            return;
+        }
+
+        heroUI?.SetUnit("Hero", playerUnit.defense, playerUnit.defense, playerUnit.attack, playerUnit.defense, true);
+        enemyUI?.SetUnit(monsterUnit.DisplayName, monsterUnit.currentDef, monsterUnit.maxDef, monsterUnit.attack, monsterUnit.maxDef, false);
+    }
+
+    public void SetCombatLog(string message)
+    {
+        if (combatLogText != null)
+        {
+            combatLogText.text = message;
+        }
+    }
+
+    public void SetBattleButtonsInteractable(bool enabled)
+    {
+        if (attackButton != null)
+        {
+            attackButton.interactable = enabled;
+        }
+
+        if (itemButton != null)
+        {
+            itemButton.interactable = enabled;
+        }
+
+        if (runButton != null)
+        {
+            runButton.interactable = enabled;
+        }
+    }
+
+    private void ConfigureBattleActions()
+    {
+        BindButton(attackButton, BattleManager.Instance.OnAttackPressed);
+        BindButton(itemButton, BattleManager.Instance.OnItemPressed);
+        BindButton(runButton, BattleManager.Instance.OnRunPressed);
+    }
+
+    private void BindButton(Button button, UnityEngine.Events.UnityAction action)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        button.onClick.RemoveListener(action);
+        button.onClick.AddListener(action);
+    }
+
+    private void AutoWireSceneReferences()
+    {
+        overworldUIRoot ??= FindSceneObject("OverworldUI");
+        battleUIRoot ??= FindSceneObject("BattleUI");
+
+        if (battleUIRoot != null)
+        {
+            attackButton ??= FindComponentInChildren<Button>(battleUIRoot.transform, "AttackButton");
+            itemButton ??= FindComponentInChildren<Button>(battleUIRoot.transform, "ItemButton");
+            runButton ??= FindComponentInChildren<Button>(battleUIRoot.transform, "RunButton");
+            combatLogText ??= FindComponentInChildren<TextMeshProUGUI>(battleUIRoot.transform, "BattleText");
+
+            heroUI ??= SetupBattleUnitUI("HeroUISection");
+            enemyUI ??= SetupBattleUnitUI("EnemyUISection");
+        }
+    }
+
+    private BattleUnitUI SetupBattleUnitUI(string objectName)
+    {
+        GameObject targetObject = FindSceneObject(objectName);
+        if (targetObject == null)
+        {
+            return null;
+        }
+
+        BattleUnitUI unitUI = targetObject.GetComponent<BattleUnitUI>();
+        if (unitUI == null)
+        {
+            unitUI = targetObject.AddComponent<BattleUnitUI>();
+        }
+
+        unitUI.AutoBind();
+        return unitUI;
+    }
+
+    private T FindComponentInChildren<T>(Transform root, string objectName) where T : Component
+    {
+        Transform target = FindChildRecursive(root, objectName);
+        if (target == null)
+        {
+            return null;
+        }
+
+        return target.GetComponent<T>();
+    }
+
+    private GameObject FindSceneObject(string objectName)
+    {
+        Scene activeScene = SceneManager.GetActiveScene();
+        foreach (GameObject rootObject in activeScene.GetRootGameObjects())
+        {
+            Transform match = FindChildRecursive(rootObject.transform, objectName);
+            if (match != null)
+            {
+                return match.gameObject;
+            }
+        }
+
+        return null;
+    }
+
+    private Transform FindChildRecursive(Transform parent, string objectName)
+    {
+        if (parent.name == objectName)
+        {
+            return parent;
+        }
+
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            Transform match = FindChildRecursive(parent.GetChild(i), objectName);
+            if (match != null)
+            {
+                return match;
+            }
+        }
+
+        return null;
     }
 }

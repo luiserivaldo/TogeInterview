@@ -6,19 +6,6 @@ public class PlayerClass : MonoBehaviour
     public int defense = 5;
     public int money = 0;
 
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.TryGetComponent(out MonsterClass monster))
-        {
-            GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
-
-            if (gameManager != null)
-            {
-                gameManager.StartCombat(this, monster);
-            }
-        }
-    }
-
     public void TakeDamage(int amount)
     {
         defense -= amount;
