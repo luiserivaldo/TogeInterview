@@ -29,6 +29,14 @@ public class BattleManager : MonoBehaviour
     private Vector3 monsterStartScale;
 
     private readonly List<SpriteRenderer> hiddenCreatureRenderers = new();
+    private readonly List<SpriteSortingState> activeBattleSpriteStates = new();
+
+    private struct SpriteSortingState
+    {
+        public SpriteRenderer Renderer;
+        public int SortingLayerId;
+        public int SortingOrder;
+    }
 
     public static BattleManager Instance
     {
@@ -92,6 +100,7 @@ public class BattleManager : MonoBehaviour
         battleActive = true;
         transitionRunning = true;
 
+        ElevateActiveBattleSprites();
         StartCoroutine(BeginBattleRoutine());
     }
 
@@ -171,6 +180,8 @@ public class BattleManager : MonoBehaviour
             monsterStartScale,
             exitDuration);
 
+        RestoreActiveBattleSpriteSorting();
+
         if (activePlayerController != null)
         {
             activePlayerController.enabled = true;
@@ -239,6 +250,105 @@ public class BattleManager : MonoBehaviour
                 hiddenCreatureRenderers.Add(renderer);
             }
         }
+    }
+
+    private void ElevateActiveBattleSprites()
+    {
+        activeBattleSpriteStates.Clear();
+
+        int topSortingLayerId = GetTopSortingLayerId();
+        int topSortingOrder = GetTopSortingOrderForLayer(topSortingLayerId) + 100;
+
+        ElevateCombatantSprites(activePlayer != null ? activePlayer.gameObject : null, topSortingLayerId, topSortingOrder);
+        ElevateCombatantSprites(activeMonster != null ? activeMonster.gameObject : null, topSortingLayerId, topSortingOrder + 1);
+    }
+
+    private void ElevateCombatantSprites(GameObject combatant, int sortingLayerId, int sortingOrder)
+    {
+        if (combatant == null)
+        {
+            return;
+        }
+
+        SpriteRenderer[] renderers = combatant.GetComponentsInChildren<SpriteRenderer>(true);
+        foreach (SpriteRenderer renderer in renderers)
+        {
+            if (renderer == null)
+            {
+                continue;
+            }
+
+            activeBattleSpriteStates.Add(new SpriteSortingState
+            {
+                Renderer = renderer,
+                SortingLayerId = renderer.sortingLayerID,
+                SortingOrder = renderer.sortingOrder,
+            });
+
+            renderer.sortingLayerID = sortingLayerId;
+            renderer.sortingOrder = sortingOrder;
+        }
+    }
+
+    private void RestoreActiveBattleSpriteSorting()
+    {
+        foreach (SpriteSortingState state in activeBattleSpriteStates)
+        {
+            if (state.Renderer == null)
+            {
+                continue;
+            }
+
+            state.Renderer.sortingLayerID = state.SortingLayerId;
+            state.Renderer.sortingOrder = state.SortingOrder;
+        }
+
+        activeBattleSpriteStates.Clear();
+    }
+
+    private int GetTopSortingLayerId()
+    {
+        Renderer[] renderers = Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None);
+        int bestLayerId = 0;
+        int bestLayerValue = int.MinValue;
+
+        foreach (Renderer renderer in renderers)
+        {
+            if (renderer == null)
+            {
+                continue;
+            }
+
+            int layerValue = SortingLayer.GetLayerValueFromID(renderer.sortingLayerID);
+            if (layerValue > bestLayerValue)
+            {
+                bestLayerValue = layerValue;
+                bestLayerId = renderer.sortingLayerID;
+            }
+        }
+
+        return bestLayerId;
+    }
+
+    private int GetTopSortingOrderForLayer(int sortingLayerId)
+    {
+        Renderer[] renderers = Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None);
+        int bestSortingOrder = 0;
+
+        foreach (Renderer renderer in renderers)
+        {
+            if (renderer == null || renderer.sortingLayerID != sortingLayerId)
+            {
+                continue;
+            }
+
+            if (renderer.sortingOrder > bestSortingOrder)
+            {
+                bestSortingOrder = renderer.sortingOrder;
+            }
+        }
+
+        return bestSortingOrder;
     }
 
     private Vector3 GetViewportWorldPosition(float viewportX, float viewportY, float worldZ)
