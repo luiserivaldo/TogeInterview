@@ -173,8 +173,8 @@ public class BattleManager : MonoBehaviour
         SetOverworldCreatureSpritesVisible(false);
         UIManager.Instance.ShowBattleUI();
         UIManager.Instance.BindBattle(activePlayer, activeMonster, true, playerBattleMaxHp);
-        UIManager.Instance.SetCombatLog($"A {activeMonster.DisplayName} has appeared!");
-        UIManager.Instance.AppendCombatLog($"{HeroDisplayName} moves first.");
+        UIManager.Instance.SetCombatLog($"A <color=red>{activeMonster.DisplayName}</color> has appeared!");
+        UIManager.Instance.AppendCombatLog($"<color=green>{HeroDisplayName}</color> moves first.");
         UIManager.Instance.SetBattleButtonsInteractable(true);
         UIManager.Instance.SelectBattleDefaultAction();
 
@@ -189,12 +189,12 @@ public class BattleManager : MonoBehaviour
         if (action == BattleAction.Attack)
         {
             int damage = activeMonster.ApplyDamage(activePlayer.attack);
-            UIManager.Instance.AppendCombatLog($"{HeroDisplayName} attacks {activeMonster.DisplayName} for {damage}!");
+            UIManager.Instance.AppendCombatLog($"<color=green>{HeroDisplayName}</color> attacks <color=red>{activeMonster.DisplayName}</color> for <color=red>{damage}</color> damage!");
             UIManager.Instance.BindBattle(activePlayer, activeMonster, false, playerBattleMaxHp);
         }
         else
         {
-            UIManager.Instance.AppendCombatLog($"{HeroDisplayName} tries to use an item, but nothing happens.");
+            UIManager.Instance.AppendCombatLog($"<color=green>{HeroDisplayName}</color> tries to use an item, but nothing happens.");
             UIManager.Instance.BindBattle(activePlayer, activeMonster, false, playerBattleMaxHp);
         }
 
@@ -207,7 +207,7 @@ public class BattleManager : MonoBehaviour
         yield return new WaitForSeconds(actionPauseDuration);
 
         int incomingDamage = activePlayer.ApplyDamage(activeMonster.attack);
-        UIManager.Instance.AppendCombatLog($"{activeMonster.DisplayName} attacks {HeroDisplayName} for {incomingDamage}!");
+        UIManager.Instance.AppendCombatLog($"<color=red>{activeMonster.DisplayName}</color> attacks <color=green>{HeroDisplayName}</color> for {incomingDamage}!");
         UIManager.Instance.BindBattle(activePlayer, activeMonster, activePlayer.IsDefeated ? false : true, playerBattleMaxHp);
 
         if (activePlayer.IsDefeated)
@@ -227,7 +227,7 @@ public class BattleManager : MonoBehaviour
     private IEnumerator HandleEnemyDefeatRoutine()
     {
         UIManager.Instance.BindBattle(activePlayer, activeMonster, false, playerBattleMaxHp);
-        UIManager.Instance.AppendCombatLog($"{activeMonster.DisplayName} has been defeated! Earn {activeMonster.money} GP!");
+        UIManager.Instance.AppendCombatLog($"<color=red>{activeMonster.DisplayName}</color> has been defeated! Earn <color=yellow>{activeMonster.money}</color> GP!");
 
         yield return new WaitForSeconds(conclusionPauseDuration);
 
@@ -243,7 +243,7 @@ public class BattleManager : MonoBehaviour
     private IEnumerator HandlePlayerDefeatRoutine()
     {
         UIManager.Instance.BindBattle(activePlayer, activeMonster, false, playerBattleMaxHp);
-        UIManager.Instance.AppendCombatLog($"{HeroDisplayName} has been defeated...");
+        UIManager.Instance.AppendCombatLog($"<color=green>{HeroDisplayName}</color> has been defeated...");
 
         yield return FadeCombatantRoutine(activePlayer.gameObject, 1f, 0f, defeatFadeDuration);
         yield return new WaitForSeconds(conclusionPauseDuration);

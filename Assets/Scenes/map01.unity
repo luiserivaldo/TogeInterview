@@ -253,7 +253,7 @@ MonoBehaviour:
   combatViewportY: 0.5
   actionPauseDuration: 0.8
   defeatFadeDuration: 0.4
-  conclusionPauseDuration: 2
+  conclusionPauseDuration: 0.8
 --- !u!4 &30908808
 Transform:
   m_ObjectHideFlags: 0
