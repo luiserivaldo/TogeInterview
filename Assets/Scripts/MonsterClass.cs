@@ -6,6 +6,7 @@ public class MonsterClass : MonoBehaviour
     public int maxDef = 1;
     public int currentDef = 1;
     public int money = 1;
+    public bool isTutorialMonster;
 
     private void Start()
     {
@@ -19,7 +20,7 @@ public class MonsterClass : MonoBehaviour
         if (currentDef <= 0)
         {
             GameManager.Instance.MonsterKilled(this);
-            gameObject.SetActive(false); // Disable prefab on death; previously destroy
+            gameObject.SetActive(false);
         }
     }
 

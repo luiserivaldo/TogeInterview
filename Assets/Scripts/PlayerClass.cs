@@ -8,7 +8,9 @@ public class PlayerClass : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.TryGetComponent(out MonsterClass monster))
+        if (GameManager.Instance != null &&
+            !GameManager.Instance.IsCombatActive &&
+            collision.gameObject.TryGetComponent(out MonsterClass monster))
         {
             GameManager.Instance.StartCombat(this, monster);
         }

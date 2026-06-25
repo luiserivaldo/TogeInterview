@@ -1,8 +1,17 @@
 using UnityEngine;
+using System;
 using System.Collections;
+using System.Collections.Generic;
 
 public class PlayerController : MonoBehaviour
 {
+    public enum ControlMode
+    {
+        Player,
+        Locked,
+        Scripted
+    }
+
     [SerializeField] public float moveSpeed = 10f; // player speed, default 10f
     [SerializeField] private Transform locationPointer;  // pointer for grid
     [SerializeField] private LayerMask wallLayer;
@@ -18,6 +27,10 @@ public class PlayerController : MonoBehaviour
     private Vector3 bumpTarget;
     private float inputCooldown = 0f;  // cooldown between bumps to prevent re-input
     private float inputCooldownDuration = 0.2f;
+    private readonly Queue<Vector3> scriptedPath = new Queue<Vector3>();
+    private Action scriptedMoveCompleted;
+    private ControlMode controlMode = ControlMode.Player;
+    private bool scriptedMonsterCollisionEnabled;
 
     void Start()
     {
@@ -26,19 +39,15 @@ public class PlayerController : MonoBehaviour
         movementDirection = Vector3.zero;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        // set speed of movement towards tiles
         float movementAmount = moveSpeed * Time.deltaTime;
 
-        // timer to block input
         if (inputCooldown > 0f)
         {
             inputCooldown -= Time.deltaTime;
         }
 
-        // If currently bumping, interpolate and return early
         if (isBumping)
         {
             bumpTimer += Time.deltaTime;
@@ -59,124 +68,230 @@ public class PlayerController : MonoBehaviour
 
         transform.position = Vector3.MoveTowards(transform.position, locationPointer.position, movementAmount);
 
-        // movement per input. 0.5 = 1 tile 
-        if (Vector3.Distance(transform.position, locationPointer.position) <= .05f && !isBumping && inputCooldown <= 0f)
+        if (controlMode == ControlMode.Scripted)
         {
-            // register direction through input
+            AdvanceScriptedMovement();
+        }
+
+        if (controlMode == ControlMode.Player &&
+            Vector3.Distance(transform.position, locationPointer.position) <= .05f &&
+            inputCooldown <= 0f)
+        {
             float horizontalInput = Input.GetAxisRaw("Horizontal");
             float verticalInput = Input.GetAxisRaw("Vertical");
 
-            // Disable UI texts on movement
             Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
             if (input != Vector2.zero)
             {
-                UIManager.Instance.HideMessage(); // Hide sign text on player movement
+                UIManager.Instance.HideMessage();
                 UIManager.Instance.HideBountyBoard();
             }
 
-            // move in X axis based on horizontal input, prioritise horizontal movement over vertical
             if (Mathf.Abs(horizontalInput) == 1f)
             {
                 Vector3 targetPos = locationPointer.position + new Vector3(horizontalInput, 0f, 0f);
                 if (!Physics2D.OverlapCircle(targetPos, 0.2f, wallLayer))
                 {
-                    lastPosition = locationPointer.position; // Store current position before moving
-                    movementDirection = new Vector3(horizontalInput, 0f, 0f); // Store movement direction
+                    lastPosition = locationPointer.position;
+                    movementDirection = new Vector3(horizontalInput, 0f, 0f);
                     locationPointer.position = targetPos;
                 }
             }
-            // move in Y axis based on vertical input
             else if (Mathf.Abs(verticalInput) == 1f)
             {
                 Vector3 targetPos = locationPointer.position + new Vector3(0f, verticalInput, 0f);
                 if (!Physics2D.OverlapCircle(targetPos, 0.2f, wallLayer))
                 {
-                    lastPosition = locationPointer.position; // Store current position before moving
-                    movementDirection = new Vector3(0f, verticalInput, 0f); // Store movement direction
+                    lastPosition = locationPointer.position;
+                    movementDirection = new Vector3(0f, verticalInput, 0f);
                     locationPointer.position = targetPos;
                 }
             }
         }
 
-        // Check for collisions continuously while moving (allowing slight overlap)
-        if (!isBumping)
+        if (!isBumping && controlMode != ControlMode.Locked)
         {
-            // check for monster collision 
-            Collider2D monsterHit = Physics2D.OverlapCircle(transform.position, 0.2f, monsterLayer);
-            if (monsterHit != null && monsterHit.TryGetComponent(out MonsterClass monster))
+            bool allowMonsterCollision = controlMode == ControlMode.Player || scriptedMonsterCollisionEnabled;
+            if (allowMonsterCollision)
             {
-                Debug.Log("Hit a monster.");
-                GameManager.Instance.StartCombat(GetComponent<PlayerClass>(), monster);
-                BumpBack();
-            }
-
-            // check for shop collision 
-            Collider2D shopHit = Physics2D.OverlapCircle(transform.position, 0.2f, shopLayer);
-            if (shopHit != null && shopHit.TryGetComponent(out ShopClass shop))
-            {
-                Debug.Log("Hit a shop.");
-                shop.TryInteract(GetComponent<PlayerClass>());
-                BumpBack();
-            }
-
-            // check for interactable collision 
-            Collider2D interactableHit = Physics2D.OverlapCircle(transform.position, 0.2f, interactableLayer);
-            if (interactableHit != null && interactableHit.TryGetComponent(out InteractableObject interactable))
-            {
-                Debug.Log("Hit an interactable object.");
-                GameManager.Instance.InteractWithObject(interactable);
-
-                // Only show message if it's a sign
-                if (interactable.objectType == InteractableObject.InteractableType.Sign)
+                Collider2D monsterHit = Physics2D.OverlapCircle(transform.position, 0.2f, monsterLayer);
+                if (monsterHit != null && monsterHit.TryGetComponent(out MonsterClass monster))
                 {
-                    UIManager.Instance.ShowMessage(interactable.GetSignMessage());
-                    if (interactable.signType == InteractableObject.SignType.BountyBoardSign)
-                    {
-                        UIManager.Instance.ShowBountyBoard();
-                    }
+                    Debug.Log("Hit a monster.");
+                    GameManager.Instance.StartCombat(GetComponent<PlayerClass>(), monster);
+                    BumpBack();
+                    ClearScriptedMovement();
+                }
+            }
+
+            if (controlMode == ControlMode.Player)
+            {
+                Collider2D shopHit = Physics2D.OverlapCircle(transform.position, 0.2f, shopLayer);
+                if (shopHit != null && shopHit.TryGetComponent(out ShopClass shop))
+                {
+                    Debug.Log("Hit a shop.");
+                    shop.TryInteract(GetComponent<PlayerClass>());
+                    BumpBack();
                 }
 
-                BumpBack();
+                Collider2D interactableHit = Physics2D.OverlapCircle(transform.position, 0.2f, interactableLayer);
+                if (interactableHit != null && interactableHit.TryGetComponent(out InteractableObject interactable))
+                {
+                    Debug.Log("Hit an interactable object.");
+                    GameManager.Instance.InteractWithObject(interactable);
+
+                    if (interactable.objectType == InteractableObject.InteractableType.Sign)
+                    {
+                        UIManager.Instance.ShowMessage(interactable.GetSignMessage());
+                        if (interactable.signType == InteractableObject.SignType.BountyBoardSign)
+                        {
+                            UIManager.Instance.ShowBountyBoard();
+                        }
+                    }
+
+                    BumpBack();
+                }
             }
         }
     }
 
-    // Detects whether player collides with a MonsterClass GameObject
-    private bool MonsterAtPosition(Vector3 position)
-    {
-        Collider2D hit = Physics2D.OverlapCircle(position, 0.2f);
-        if (hit != null && hit.GetComponent<MonsterClass>() != null)
-        {
-            return true;
-        }
-        return false;
-    }
-
-    // Detects whether player collides with a Shop GameObject
-    private bool ShopAtPosition(Vector3 position)
-    {
-        Collider2D hit = Physics2D.OverlapCircle(position, 0.2f);
-        if (hit != null && hit.GetComponent<ShopManager>() != null)
-        {
-            return true;
-        }
-        return false;
-    }
-
-    // "Bump" effect - bumps back to original position before the movement
     public void BumpBack()
     {
         inputCooldown = inputCooldownDuration;
         isBumping = true;
-        bumpStart = transform.position; // Start from current overlapping position
-        bumpTarget = SnapToGrid(lastPosition); // Go back to the position before the movement
-        
-        // Update locationPointer to the bump target
+        bumpStart = transform.position;
+        bumpTarget = SnapToGrid(lastPosition);
         locationPointer.position = bumpTarget;
         bumpTimer = 0f;
     }
 
-    // Ensures player bounces back to grid
+    public ControlMode CurrentControlMode => controlMode;
+    public LayerMask WallLayer => wallLayer;
+    public LayerMask MonsterLayer => monsterLayer;
+    public LayerMask ShopLayer => shopLayer;
+    public LayerMask InteractableLayer => interactableLayer;
+    public Vector3 GridPosition => locationPointer.position;
+    public bool IsBusy => isBumping || Vector3.Distance(transform.position, locationPointer.position) > 0.05f || scriptedPath.Count > 0;
+
+    public void SetControlMode(ControlMode mode)
+    {
+        controlMode = mode;
+        if (mode != ControlMode.Scripted)
+        {
+            scriptedPath.Clear();
+            scriptedMoveCompleted = null;
+            scriptedMonsterCollisionEnabled = false;
+        }
+    }
+
+    public void MoveToPosition(Vector3 target, Action onComplete = null, bool allowMonsterCollision = false)
+    {
+        List<Vector3> generatedPath = GeneratePath(locationPointer.position, target);
+        MoveAlongPath(generatedPath, onComplete, allowMonsterCollision);
+    }
+
+    public void MoveAlongPath(IList<Vector3> path, Action onComplete = null, bool allowMonsterCollision = false)
+    {
+        scriptedPath.Clear();
+        if (path != null)
+        {
+            for (int i = 0; i < path.Count; i++)
+            {
+                scriptedPath.Enqueue(path[i]);
+            }
+        }
+
+        scriptedMoveCompleted = onComplete;
+        scriptedMonsterCollisionEnabled = allowMonsterCollision;
+        controlMode = ControlMode.Scripted;
+        AdvanceScriptedMovement();
+    }
+
+    public void ClearScriptedMovement()
+    {
+        scriptedPath.Clear();
+        scriptedMoveCompleted = null;
+        scriptedMonsterCollisionEnabled = false;
+        if (controlMode == ControlMode.Scripted)
+        {
+            controlMode = ControlMode.Locked;
+        }
+    }
+
+    public bool CanOccupy(Vector3 position, bool ignoreMonsters = false)
+    {
+        if (Physics2D.OverlapCircle(position, 0.2f, wallLayer))
+        {
+            return false;
+        }
+
+        if (Physics2D.OverlapCircle(position, 0.2f, shopLayer))
+        {
+            return false;
+        }
+
+        if (Physics2D.OverlapCircle(position, 0.2f, interactableLayer))
+        {
+            return false;
+        }
+
+        if (!ignoreMonsters && Physics2D.OverlapCircle(position, 0.2f, monsterLayer))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private void AdvanceScriptedMovement()
+    {
+        if (controlMode != ControlMode.Scripted)
+        {
+            return;
+        }
+
+        if (Vector3.Distance(transform.position, locationPointer.position) > 0.05f || isBumping)
+        {
+            return;
+        }
+
+        if (scriptedPath.Count > 0)
+        {
+            Vector3 nextPosition = SnapToGrid(scriptedPath.Dequeue());
+            lastPosition = locationPointer.position;
+            movementDirection = nextPosition - locationPointer.position;
+            locationPointer.position = nextPosition;
+            return;
+        }
+
+        Action completed = scriptedMoveCompleted;
+        scriptedMoveCompleted = null;
+        scriptedMonsterCollisionEnabled = false;
+        controlMode = ControlMode.Locked;
+        completed?.Invoke();
+    }
+
+    private List<Vector3> GeneratePath(Vector3 start, Vector3 target)
+    {
+        List<Vector3> path = new List<Vector3>();
+        Vector3 cursor = SnapToGrid(start);
+        Vector3 snappedTarget = SnapToGrid(target);
+
+        while (!Mathf.Approximately(cursor.x, snappedTarget.x))
+        {
+            cursor += new Vector3(Mathf.Sign(snappedTarget.x - cursor.x), 0f, 0f);
+            path.Add(cursor);
+        }
+
+        while (!Mathf.Approximately(cursor.y, snappedTarget.y))
+        {
+            cursor += new Vector3(0f, Mathf.Sign(snappedTarget.y - cursor.y), 0f);
+            path.Add(cursor);
+        }
+
+        return path;
+    }
+
     private Vector3 SnapToGrid(Vector3 pos)
     {
         return new Vector3(
