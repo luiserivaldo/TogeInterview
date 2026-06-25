@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class DialogueManager : MonoBehaviour
 {
@@ -239,7 +241,7 @@ public class DialogueManager : MonoBehaviour
 
             for (int i = 1; i <= text.Length; i++)
             {
-                if (Input.GetButtonDown("Submit"))
+                if (IsDialogueSubmitPressed())
                 {
                     UIManager.Instance.SetDialogueText(text);
                     break;
@@ -250,7 +252,7 @@ public class DialogueManager : MonoBehaviour
             }
         }
 
-        yield return new WaitUntil(() => Input.GetButtonDown("Submit"));
+        yield return new WaitUntil(IsDialogueSubmitPressed);
     }
 
     private IEnumerator ExecuteShowChoice(DialogueCommandData command)
@@ -267,6 +269,15 @@ public class DialogueManager : MonoBehaviour
 
         while (resolvedChoice < 0)
         {
+            if (IsDialogueSubmitPressed())
+            {
+                Button selectedButton = EventSystem.current?.currentSelectedGameObject?.GetComponent<Button>();
+                if (selectedButton != null && selectedButton.IsActive() && selectedButton.interactable)
+                {
+                    selectedButton.onClick.Invoke();
+                }
+            }
+
             yield return null;
         }
 
@@ -394,5 +405,10 @@ public class DialogueManager : MonoBehaviour
             Destroy(activeParticleInstance);
             activeParticleInstance = null;
         }
+    }
+
+    private bool IsDialogueSubmitPressed()
+    {
+        return Input.GetKeyDown(KeyCode.Z) || Input.GetButtonDown("Submit");
     }
 }

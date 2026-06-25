@@ -207,7 +207,9 @@ public class PlayerController : MonoBehaviour
         bumpTimer = 0f;
         movementDirection = Vector3.zero;
 
-        Vector3 snappedPosition = SnapToGrid(transform.position);
+        // Return to the last committed tile so tutorial/sign interactions
+        // cannot leave the player hovering inside the trigger collider.
+        Vector3 snappedPosition = GetSafeReturnPosition();
         transform.position = snappedPosition;
 
         if (locationPointer != null)
