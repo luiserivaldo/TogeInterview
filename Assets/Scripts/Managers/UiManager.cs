@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -18,6 +19,7 @@ public class UIManager : MonoBehaviour
     [Header("UI Roots")]
     [SerializeField] private GameObject overworldUIRoot;
     [SerializeField] private GameObject battleUIRoot;
+    [SerializeField] private GameObject cutsceneUIRoot;
 
     [Header("UI References")]
     public TextMeshProUGUI atkText;
@@ -39,6 +41,15 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button attackButton;
     [SerializeField] private Button itemButton;
     [SerializeField] private Button runButton;
+
+    [Header("Cutscene Elements")]
+    [SerializeField] private Image cutsceneAvatarImage;
+    [SerializeField] private TextMeshProUGUI cutsceneDialogueText;
+    [SerializeField] private Button yesButton;
+    [SerializeField] private Button noButton;
+    [SerializeField] private TextMeshProUGUI yesButtonText;
+    [SerializeField] private TextMeshProUGUI noButtonText;
+    [SerializeField] private Transform dialogueEffectAnchor;
 
     private void Awake()
     {
@@ -117,6 +128,11 @@ public class UIManager : MonoBehaviour
         {
             battleUIRoot.SetActive(false);
         }
+
+        if (cutsceneUIRoot != null)
+        {
+            cutsceneUIRoot.SetActive(false);
+        }
     }
 
     public void ShowBattleUI()
@@ -130,6 +146,141 @@ public class UIManager : MonoBehaviour
         {
             battleUIRoot.SetActive(true);
         }
+
+        if (cutsceneUIRoot != null)
+        {
+            cutsceneUIRoot.SetActive(false);
+        }
+    }
+
+    public void ShowCutsceneUI()
+    {
+        if (overworldUIRoot != null)
+        {
+            overworldUIRoot.SetActive(true);
+        }
+
+        if (battleUIRoot != null)
+        {
+            battleUIRoot.SetActive(false);
+        }
+
+        if (cutsceneUIRoot != null)
+        {
+            cutsceneUIRoot.SetActive(true);
+        }
+    }
+
+    public void HideCutsceneUI()
+    {
+        SetCutsceneChoicesVisible(false);
+        SetCutsceneText(string.Empty);
+        SetCutsceneAvatar(null);
+        ClearSelectedUI();
+
+        if (cutsceneUIRoot != null)
+        {
+            cutsceneUIRoot.SetActive(false);
+        }
+    }
+
+    public void SetCutsceneText(string text)
+    {
+        if (cutsceneDialogueText != null)
+        {
+            cutsceneDialogueText.text = text ?? string.Empty;
+        }
+    }
+
+    public void SetCutsceneAvatar(Sprite avatarSprite)
+    {
+        if (cutsceneAvatarImage == null)
+        {
+            return;
+        }
+
+        cutsceneAvatarImage.sprite = avatarSprite;
+        cutsceneAvatarImage.enabled = avatarSprite != null;
+    }
+
+    public void SetCutsceneChoicesVisible(bool visible, string yesLabel = "Yes", string noLabel = "No")
+    {
+        if (yesButton != null)
+        {
+            yesButton.gameObject.SetActive(visible);
+        }
+
+        if (noButton != null)
+        {
+            noButton.gameObject.SetActive(visible);
+        }
+
+        if (yesButtonText != null)
+        {
+            yesButtonText.text = string.IsNullOrWhiteSpace(yesLabel) ? "Yes" : yesLabel;
+        }
+
+        if (noButtonText != null)
+        {
+            noButtonText.text = string.IsNullOrWhiteSpace(noLabel) ? "No" : noLabel;
+        }
+    }
+
+    public void BindCutsceneChoiceHandlers(UnityAction yesAction, UnityAction noAction)
+    {
+        BindButton(yesButton, yesAction, true);
+        BindButton(noButton, noAction, true);
+    }
+
+    public void SelectCutsceneDefaultAction()
+    {
+        if (yesButton != null && yesButton.gameObject.activeInHierarchy && yesButton.interactable)
+        {
+            SelectBattleAction(yesButton);
+            return;
+        }
+
+        ClearSelectedUI();
+    }
+
+    public void ShowDialogueUI()
+    {
+        ShowCutsceneUI();
+    }
+
+    public void HideDialogueUI()
+    {
+        HideCutsceneUI();
+    }
+
+    public void SetDialogueText(string text)
+    {
+        SetCutsceneText(text);
+    }
+
+    public void SetDialogueImage(Sprite image)
+    {
+        SetCutsceneAvatar(image);
+    }
+
+    public void SetDialogueChoicesVisible(bool visible, string yesLabel = "Yes", string noLabel = "No")
+    {
+        SetCutsceneChoicesVisible(visible, yesLabel, noLabel);
+    }
+
+    public void BindDialogueChoiceHandlers(UnityAction yesAction, UnityAction noAction)
+    {
+        BindCutsceneChoiceHandlers(yesAction, noAction);
+    }
+
+    public void SelectDialogueDefaultAction()
+    {
+        SelectCutsceneDefaultAction();
+    }
+
+    public Transform GetDialogueEffectAnchor()
+    {
+        return dialogueEffectAnchor != null ? dialogueEffectAnchor : cutsceneUIRoot != null ? cutsceneUIRoot.transform : null;
     }
 
     public void SelectBattleDefaultAction()
@@ -274,21 +425,33 @@ public class UIManager : MonoBehaviour
         return spriteRenderer != null ? spriteRenderer.sprite : null;
     }
 
-    private void BindButton(Button button, UnityEngine.Events.UnityAction action)
+    private void BindButton(Button button, UnityAction action, bool clearExisting = false)
     {
         if (button == null)
         {
             return;
         }
 
-        button.onClick.RemoveListener(action);
-        button.onClick.AddListener(action);
+        if (clearExisting)
+        {
+            button.onClick.RemoveAllListeners();
+        }
+        else
+        {
+            button.onClick.RemoveListener(action);
+        }
+
+        if (action != null)
+        {
+            button.onClick.AddListener(action);
+        }
     }
 
     private void AutoWireSceneReferences()
     {
         overworldUIRoot ??= FindSceneObject("OverworldUI");
         battleUIRoot ??= FindSceneObject("BattleUI");
+        cutsceneUIRoot ??= FindSceneObject("CutsceneUI");
 
         if (battleUIRoot != null)
         {
@@ -300,6 +463,38 @@ public class UIManager : MonoBehaviour
             heroUI ??= SetupBattleUnitUI("HeroUISection");
             enemyUI ??= SetupBattleUnitUI("EnemyUISection");
         }
+
+        if (cutsceneUIRoot != null)
+        {
+            cutsceneAvatarImage ??= FindComponentInChildren<Image>(cutsceneUIRoot.transform, "SpeakerAvatar");
+            cutsceneDialogueText ??= FindComponentInChildren<TextMeshProUGUI>(cutsceneUIRoot.transform, "DialogueTextBox");
+            yesButton ??= FindComponentInChildren<Button>(cutsceneUIRoot.transform, "YesButton");
+            noButton ??= FindComponentInChildren<Button>(cutsceneUIRoot.transform, "NoButton");
+            yesButtonText ??= yesButton != null ? yesButton.GetComponentInChildren<TextMeshProUGUI>(true) : null;
+            noButtonText ??= noButton != null ? noButton.GetComponentInChildren<TextMeshProUGUI>(true) : null;
+            dialogueEffectAnchor ??= cutsceneUIRoot.transform;
+            ConfigureCutsceneNavigation();
+        }
+    }
+
+    private void ConfigureCutsceneNavigation()
+    {
+        if (yesButton == null || noButton == null)
+        {
+            return;
+        }
+
+        Navigation yesNavigation = yesButton.navigation;
+        yesNavigation.mode = Navigation.Mode.Explicit;
+        yesNavigation.selectOnRight = noButton;
+        yesNavigation.selectOnLeft = noButton;
+        yesButton.navigation = yesNavigation;
+
+        Navigation noNavigation = noButton.navigation;
+        noNavigation.mode = Navigation.Mode.Explicit;
+        noNavigation.selectOnLeft = yesButton;
+        noNavigation.selectOnRight = yesButton;
+        noButton.navigation = noNavigation;
     }
 
     private BattleUnitUI SetupBattleUnitUI(string objectName)

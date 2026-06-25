@@ -18,6 +18,8 @@ public class PlayerController : MonoBehaviour
     private float inputCooldown = 0f;
     private float inputCooldownDuration = 0.2f;
 
+    public LayerMask WallLayer => wallLayer;
+
     void Start()
     {
         locationPointer.parent = null;
@@ -27,6 +29,12 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        if (GameManager.IsGameplayLocked)
+        {
+            CancelMovementAndSnap();
+            return;
+        }
+
         float movementAmount = moveSpeed * Time.deltaTime;
 
         if (inputCooldown > 0f)
@@ -116,6 +124,11 @@ public class PlayerController : MonoBehaviour
                     gameManager.InteractWithObject(interactable);
                 }
 
+                if (GameManager.IsGameplayLocked)
+                {
+                    return;
+                }
+
                 if (interactable.objectType == InteractableObject.InteractableType.Sign)
                 {
                     UIManager.Instance.ShowMessage(interactable.GetSignMessage());
@@ -185,5 +198,21 @@ public class PlayerController : MonoBehaviour
             Mathf.Round(pos.y * 2f) / 2f,
             pos.z
         );
+    }
+
+    private void CancelMovementAndSnap()
+    {
+        inputCooldown = 0f;
+        isBumping = false;
+        bumpTimer = 0f;
+        movementDirection = Vector3.zero;
+
+        Vector3 snappedPosition = SnapToGrid(transform.position);
+        transform.position = snappedPosition;
+
+        if (locationPointer != null)
+        {
+            locationPointer.position = snappedPosition;
+        }
     }
 }

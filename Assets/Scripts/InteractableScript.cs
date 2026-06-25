@@ -13,10 +13,15 @@ public class InteractableObject : MonoBehaviour
         None,
         FountainSign,
         BlacksmithSign,
-        BountyBoardSign
+        BountyBoardSign,
+        TutorialSign,
     }
     public SignType signType = SignType.None;
     public InteractableType objectType;
+
+    [Header("Tutorial Dialogue")]
+    public DialogueScript_ScriptableObject tutorialDialogueScript;
+    public Sprite dialogueImage;
 
     [TextArea(2, 5)] // For nicer editing in Inspector
     public string additionalMessage = "";
@@ -41,6 +46,10 @@ public class InteractableObject : MonoBehaviour
 
             case SignType.BountyBoardSign:
                 baseMessage = GetBountyBoardMessage();
+                break;
+
+            case SignType.TutorialSign:
+                baseMessage = "Play tutorial?";
                 break;
 
             default:

@@ -1,0 +1,147 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1aeae7e0a194d1bb23f3a3434107dd0, type: 3}
+  m_Name: DialogueFrameworkExample
+  m_EditorClassIdentifier: 
+  commands:
+  - commandType: 0
+    label: start
+    text: Hello, this is line 1.
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 0
+    label: 
+    text: This only shows text.
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 0
+    label: 
+    text: Now, you will be presented with two choices.
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 1
+    label: 
+    text: 
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options:
+    - optionKey: option_a
+      optionLabel: Option A
+      targetLabel: 
+    - optionKey: option_b
+      optionLabel: Option B
+      targetLabel: 
+  - commandType: 4
+    label: 
+    text: 
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options:
+    - optionKey: option_a
+      optionLabel: 
+      targetLabel: branch_a
+    - optionKey: option_b
+      optionLabel: 
+      targetLabel: branch_b
+  - commandType: 2
+    label: branch_a
+    text: 
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 0
+    label: 
+    text: You have selected option A.
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 3
+    label: 
+    text: 
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: finish
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 2
+    label: branch_b
+    text: 
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 0
+    label: 
+    text: You have selected option B.
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 2
+    label: finish
+    text: 
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 5
+    label: 
+    text: 
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: upgrade
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []

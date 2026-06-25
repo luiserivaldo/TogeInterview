@@ -82,7 +82,7 @@ public class BattleManager : MonoBehaviour
 
     public void StartBattle(PlayerClass player, MonsterClass monster)
     {
-        if (battleActive || transitionRunning || player == null || monster == null)
+        if (GameManager.IsGameplayLocked || battleActive || transitionRunning || player == null || monster == null)
         {
             return;
         }
