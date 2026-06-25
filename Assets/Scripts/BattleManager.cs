@@ -1,0 +1,583 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class BattleManager : MonoBehaviour
+{
+    private const string HeroDisplayName = "Hero";
+
+    private static BattleManager instance;
+
+    [Header("Transition")]
+    [SerializeField] private float entryDuration = 0.25f;
+    [SerializeField] private float exitDuration = 0.2f;
+    [SerializeField] private float scaleMultiplier = 1.75f;
+    [SerializeField] [Range(0.05f, 0.45f)] private float heroViewportX = 0.25f;
+    [SerializeField] [Range(0.55f, 0.95f)] private float enemyViewportX = 0.75f;
+    [SerializeField] [Range(0.1f, 0.9f)] private float combatViewportY = 0.5f;
+
+    [Header("Turn Combat")]
+    [SerializeField] private float actionPauseDuration = 0.05f;
+    [SerializeField] private float defeatFadeDuration = 0.4f;
+    [SerializeField] private float conclusionPauseDuration = 0.2f;
+
+    private PlayerClass activePlayer;
+    private MonsterClass activeMonster;
+    private PlayerController activePlayerController;
+
+    private bool battleActive;
+    private bool transitionRunning;
+
+    private Vector3 playerStartPosition;
+    private Vector3 monsterStartPosition;
+    private Vector3 playerReturnPosition;
+    private Vector3 monsterReturnPosition;
+    private Vector3 playerStartScale;
+    private Vector3 monsterStartScale;
+    private int playerBattleMaxHp;
+
+    private readonly List<SpriteRenderer> hiddenCreatureRenderers = new();
+    private readonly List<SpriteSortingState> activeBattleSpriteStates = new();
+
+    private struct SpriteSortingState
+    {
+        public SpriteRenderer Renderer;
+        public int SortingLayerId;
+        public int SortingOrder;
+    }
+
+    public static BattleManager Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                instance = Object.FindFirstObjectByType<BattleManager>();
+
+                if (instance == null)
+                {
+                    GameObject managerObject = new GameObject(nameof(BattleManager));
+                    instance = managerObject.AddComponent<BattleManager>();
+                }
+            }
+
+            return instance;
+        }
+    }
+
+    public bool IsBattleActive => battleActive;
+
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else if (instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+    }
+
+    public void StartBattle(PlayerClass player, MonsterClass monster)
+    {
+        if (battleActive || transitionRunning || player == null || monster == null)
+        {
+            return;
+        }
+
+        activePlayer = player;
+        activeMonster = monster;
+        activePlayerController = player.GetComponent<PlayerController>();
+
+        playerStartPosition = activePlayer.transform.position;
+        monsterStartPosition = activeMonster.transform.position;
+        playerStartScale = activePlayer.transform.localScale;
+        monsterStartScale = activeMonster.transform.localScale;
+        playerBattleMaxHp = Mathf.Max(1, activePlayer.maxHp);
+        playerReturnPosition = playerStartPosition;
+        monsterReturnPosition = monsterStartPosition;
+
+        if (activePlayerController != null)
+        {
+            playerReturnPosition = activePlayerController.GetSafeReturnPosition();
+            activePlayerController.PrepareForBattleReturn();
+            activePlayerController.enabled = false;
+        }
+
+        ResetCombatantAlpha(activePlayer.gameObject);
+        ResetCombatantAlpha(activeMonster.gameObject);
+
+        battleActive = true;
+        transitionRunning = true;
+
+        ElevateActiveBattleSprites();
+        StartCoroutine(BeginBattleRoutine());
+    }
+
+    public void OnAttackPressed()
+    {
+        if (!battleActive || transitionRunning)
+        {
+            return;
+        }
+
+        StartCoroutine(ResolvePlayerActionRoutine(BattleAction.Attack));
+    }
+
+    public void OnItemPressed()
+    {
+        if (!battleActive || transitionRunning)
+        {
+            return;
+        }
+
+        StartCoroutine(ResolvePlayerActionRoutine(BattleAction.Item));
+    }
+
+    public void OnRunPressed()
+    {
+        if (!battleActive || transitionRunning)
+        {
+            return;
+        }
+
+        StartCoroutine(ExitBattleRoutine("You ran away.", false, false));
+    }
+
+    private enum BattleAction
+    {
+        Attack,
+        Item,
+    }
+
+    private IEnumerator BeginBattleRoutine()
+    {
+        UIManager.Instance.SetBattleButtonsInteractable(false);
+
+        Vector3 playerTarget = GetViewportWorldPosition(heroViewportX, combatViewportY, playerStartPosition.z);
+        Vector3 monsterTarget = GetViewportWorldPosition(enemyViewportX, combatViewportY, monsterStartPosition.z);
+
+        yield return AnimateCombatants(
+            playerStartPosition,
+            playerTarget,
+            playerStartScale,
+            playerStartScale * scaleMultiplier,
+            monsterStartPosition,
+            monsterTarget,
+            monsterStartScale,
+            monsterStartScale * scaleMultiplier,
+            entryDuration);
+
+        SetOverworldCreatureSpritesVisible(false);
+        UIManager.Instance.ShowBattleUI();
+        UIManager.Instance.BindBattle(activePlayer, activeMonster, true, playerBattleMaxHp);
+        UIManager.Instance.SetCombatLog($"A <color=red>{activeMonster.DisplayName}</color> has appeared!");
+        UIManager.Instance.AppendCombatLog($"<color=green>{HeroDisplayName}</color> moves first.");
+        UIManager.Instance.SetBattleButtonsInteractable(true);
+        UIManager.Instance.SelectBattleDefaultAction();
+
+        transitionRunning = false;
+    }
+
+    private IEnumerator ResolvePlayerActionRoutine(BattleAction action)
+    {
+        transitionRunning = true;
+        UIManager.Instance.SetBattleButtonsInteractable(false);
+
+        if (action == BattleAction.Attack)
+        {
+            int damage = activeMonster.ApplyDamage(activePlayer.attack);
+            UIManager.Instance.AppendCombatLog($"<color=green>{HeroDisplayName}</color> attacks <color=red>{activeMonster.DisplayName}</color> for <color=red>{damage}</color> damage!");
+            UIManager.Instance.BindBattle(activePlayer, activeMonster, false, playerBattleMaxHp);
+        }
+        else
+        {
+            UIManager.Instance.AppendCombatLog($"<color=green>{HeroDisplayName}</color> tries to use an item, but nothing happens.");
+            UIManager.Instance.BindBattle(activePlayer, activeMonster, false, playerBattleMaxHp);
+        }
+
+        if (activeMonster.IsDefeated)
+        {
+            yield return HandleEnemyDefeatRoutine();
+            yield break;
+        }
+
+        yield return new WaitForSeconds(actionPauseDuration);
+
+        int incomingDamage = activePlayer.ApplyDamage(activeMonster.attack);
+        UIManager.Instance.AppendCombatLog($"<color=red>{activeMonster.DisplayName}</color> attacks <color=green>{HeroDisplayName}</color> for {incomingDamage}!");
+        UIManager.Instance.BindBattle(activePlayer, activeMonster, activePlayer.IsDefeated ? false : true, playerBattleMaxHp);
+
+        if (activePlayer.IsDefeated)
+        {
+            yield return HandlePlayerDefeatRoutine();
+            yield break;
+        }
+
+        yield return new WaitForSeconds(actionPauseDuration);
+
+        UIManager.Instance.SetBattleButtonsInteractable(true);
+        UIManager.Instance.SelectBattleDefaultAction();
+        UIManager.Instance.BindBattle(activePlayer, activeMonster, true, playerBattleMaxHp);
+        transitionRunning = false;
+    }
+
+    private IEnumerator HandleEnemyDefeatRoutine()
+    {
+        UIManager.Instance.BindBattle(activePlayer, activeMonster, false, playerBattleMaxHp);
+        UIManager.Instance.AppendCombatLog($"<color=red>{activeMonster.DisplayName}</color> has been defeated! Earn <color=yellow>{activeMonster.money}</color> GP!");
+
+        yield return new WaitForSeconds(conclusionPauseDuration);
+
+        GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
+        if (gameManager != null)
+        {
+            gameManager.MonsterKilled(activeMonster);
+        }
+
+        yield return ExitBattleRoutine(string.Empty, true, true);
+    }
+
+    private IEnumerator HandlePlayerDefeatRoutine()
+    {
+        UIManager.Instance.BindBattle(activePlayer, activeMonster, false, playerBattleMaxHp);
+        UIManager.Instance.AppendCombatLog($"<color=green>{HeroDisplayName}</color> has been defeated...");
+
+        yield return FadeCombatantRoutine(activePlayer.gameObject, 1f, 0f, defeatFadeDuration);
+        yield return new WaitForSeconds(conclusionPauseDuration);
+
+        SetOverworldCreatureSpritesVisible(true);
+        RestoreActiveBattleSpriteSorting();
+        UIManager.Instance.ShowOverworldUI();
+
+        battleActive = false;
+        transitionRunning = false;
+        hiddenCreatureRenderers.Clear();
+        activePlayer = null;
+        activeMonster = null;
+        activePlayerController = null;
+
+        GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
+        if (gameManager != null)
+        {
+            gameManager.GameOver();
+        }
+    }
+
+    private IEnumerator ExitBattleRoutine(string logMessage, bool deactivateMonster, bool grantPlayerTurnOnExit)
+    {
+        transitionRunning = true;
+        UIManager.Instance.SetBattleButtonsInteractable(false);
+
+        if (!string.IsNullOrWhiteSpace(logMessage))
+        {
+            UIManager.Instance.AppendCombatLog(logMessage);
+        }
+
+        UIManager.Instance.ShowOverworldUI();
+        SetOverworldCreatureSpritesVisible(true);
+
+        yield return AnimateCombatants(
+            activePlayer.transform.position,
+            playerReturnPosition,
+            activePlayer.transform.localScale,
+            playerStartScale,
+            activeMonster.transform.position,
+            monsterReturnPosition,
+            activeMonster.transform.localScale,
+            monsterStartScale,
+            exitDuration);
+
+        RestoreActiveBattleSpriteSorting();
+        ResetCombatantAlpha(activePlayer.gameObject);
+        ResetCombatantAlpha(activeMonster.gameObject);
+
+        if (deactivateMonster && activeMonster != null)
+        {
+            activeMonster.gameObject.SetActive(false);
+        }
+
+        if (activePlayerController != null)
+        {
+            activePlayerController.enabled = true;
+        }
+
+        activePlayer = null;
+        activeMonster = null;
+        activePlayerController = null;
+        hiddenCreatureRenderers.Clear();
+        battleActive = false;
+        transitionRunning = false;
+
+        if (grantPlayerTurnOnExit)
+        {
+            UIManager.Instance.UpdateUI();
+        }
+    }
+
+    private IEnumerator FadeCombatantRoutine(GameObject combatant, float fromAlpha, float toAlpha, float duration)
+    {
+        if (combatant == null)
+        {
+            yield break;
+        }
+
+        SpriteRenderer[] renderers = combatant.GetComponentsInChildren<SpriteRenderer>(true);
+        if (renderers.Length == 0)
+        {
+            yield break;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float alpha = Mathf.Lerp(fromAlpha, toAlpha, t);
+            SetRenderersAlpha(renderers, alpha);
+            yield return null;
+        }
+
+        SetRenderersAlpha(renderers, toAlpha);
+    }
+
+    private void ResetCombatantAlpha(GameObject combatant)
+    {
+        if (combatant == null)
+        {
+            return;
+        }
+
+        SpriteRenderer[] renderers = combatant.GetComponentsInChildren<SpriteRenderer>(true);
+        SetRenderersAlpha(renderers, 1f);
+    }
+
+    private void SetRenderersAlpha(SpriteRenderer[] renderers, float alpha)
+    {
+        foreach (SpriteRenderer renderer in renderers)
+        {
+            if (renderer == null)
+            {
+                continue;
+            }
+
+            Color color = renderer.color;
+            color.a = alpha;
+            renderer.color = color;
+        }
+    }
+
+    private void SetOverworldCreatureSpritesVisible(bool visible)
+    {
+        if (!visible)
+        {
+            hiddenCreatureRenderers.Clear();
+
+            MonsterClass[] monsters = Object.FindObjectsByType<MonsterClass>(FindObjectsSortMode.None);
+            foreach (MonsterClass monster in monsters)
+            {
+                if (monster == null || monster == activeMonster)
+                {
+                    continue;
+                }
+
+                AddCreatureRenderers(monster.gameObject);
+            }
+
+            foreach (SpriteRenderer renderer in hiddenCreatureRenderers)
+            {
+                renderer.enabled = false;
+            }
+
+            return;
+        }
+
+        foreach (SpriteRenderer renderer in hiddenCreatureRenderers)
+        {
+            if (renderer != null)
+            {
+                renderer.enabled = true;
+            }
+        }
+    }
+
+    private void AddCreatureRenderers(GameObject creature)
+    {
+        if (creature == null)
+        {
+            return;
+        }
+
+        if ((activePlayer != null && creature == activePlayer.gameObject) ||
+            (activeMonster != null && creature == activeMonster.gameObject))
+        {
+            return;
+        }
+
+        SpriteRenderer[] renderers = creature.GetComponentsInChildren<SpriteRenderer>(true);
+        foreach (SpriteRenderer renderer in renderers)
+        {
+            if (renderer != null && renderer.enabled && !hiddenCreatureRenderers.Contains(renderer))
+            {
+                hiddenCreatureRenderers.Add(renderer);
+            }
+        }
+    }
+
+    private void ElevateActiveBattleSprites()
+    {
+        activeBattleSpriteStates.Clear();
+
+        int topSortingLayerId = GetTopSortingLayerId();
+        int topSortingOrder = GetTopSortingOrderForLayer(topSortingLayerId) + 100;
+
+        ElevateCombatantSprites(activePlayer != null ? activePlayer.gameObject : null, topSortingLayerId, topSortingOrder);
+        ElevateCombatantSprites(activeMonster != null ? activeMonster.gameObject : null, topSortingLayerId, topSortingOrder + 1);
+    }
+
+    private void ElevateCombatantSprites(GameObject combatant, int sortingLayerId, int sortingOrder)
+    {
+        if (combatant == null)
+        {
+            return;
+        }
+
+        SpriteRenderer[] renderers = combatant.GetComponentsInChildren<SpriteRenderer>(true);
+        foreach (SpriteRenderer renderer in renderers)
+        {
+            if (renderer == null)
+            {
+                continue;
+            }
+
+            activeBattleSpriteStates.Add(new SpriteSortingState
+            {
+                Renderer = renderer,
+                SortingLayerId = renderer.sortingLayerID,
+                SortingOrder = renderer.sortingOrder,
+            });
+
+            renderer.sortingLayerID = sortingLayerId;
+            renderer.sortingOrder = sortingOrder;
+        }
+    }
+
+    private void RestoreActiveBattleSpriteSorting()
+    {
+        foreach (SpriteSortingState state in activeBattleSpriteStates)
+        {
+            if (state.Renderer == null)
+            {
+                continue;
+            }
+
+            state.Renderer.sortingLayerID = state.SortingLayerId;
+            state.Renderer.sortingOrder = state.SortingOrder;
+        }
+
+        activeBattleSpriteStates.Clear();
+    }
+
+    private int GetTopSortingLayerId()
+    {
+        Renderer[] renderers = Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None);
+        int bestLayerId = 0;
+        int bestLayerValue = int.MinValue;
+
+        foreach (Renderer renderer in renderers)
+        {
+            if (renderer == null)
+            {
+                continue;
+            }
+
+            int layerValue = SortingLayer.GetLayerValueFromID(renderer.sortingLayerID);
+            if (layerValue > bestLayerValue)
+            {
+                bestLayerValue = layerValue;
+                bestLayerId = renderer.sortingLayerID;
+            }
+        }
+
+        return bestLayerId;
+    }
+
+    private int GetTopSortingOrderForLayer(int sortingLayerId)
+    {
+        Renderer[] renderers = Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None);
+        int bestSortingOrder = 0;
+
+        foreach (Renderer renderer in renderers)
+        {
+            if (renderer == null || renderer.sortingLayerID != sortingLayerId)
+            {
+                continue;
+            }
+
+            if (renderer.sortingOrder > bestSortingOrder)
+            {
+                bestSortingOrder = renderer.sortingOrder;
+            }
+        }
+
+        return bestSortingOrder;
+    }
+
+    private Vector3 GetViewportWorldPosition(float viewportX, float viewportY, float worldZ)
+    {
+        Camera targetCamera = Camera.main;
+        if (targetCamera == null)
+        {
+            Vector3 fallback = (playerStartPosition + monsterStartPosition) * 0.5f;
+            fallback.z = worldZ;
+            return fallback;
+        }
+
+        float cameraDistance = Mathf.Abs(worldZ - targetCamera.transform.position.z);
+        Vector3 position = targetCamera.ViewportToWorldPoint(new Vector3(viewportX, viewportY, cameraDistance));
+        position.z = worldZ;
+        return position;
+    }
+
+    private IEnumerator AnimateCombatants(
+        Vector3 playerFrom,
+        Vector3 playerTo,
+        Vector3 playerScaleFrom,
+        Vector3 playerScaleTo,
+        Vector3 monsterFrom,
+        Vector3 monsterTo,
+        Vector3 monsterScaleFrom,
+        Vector3 monsterScaleTo,
+        float duration)
+    {
+        if (activePlayer == null || activeMonster == null)
+        {
+            yield break;
+        }
+
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float eased = Mathf.SmoothStep(0f, 1f, t);
+
+            activePlayer.transform.position = Vector3.Lerp(playerFrom, playerTo, eased);
+            activePlayer.transform.localScale = Vector3.Lerp(playerScaleFrom, playerScaleTo, eased);
+
+            activeMonster.transform.position = Vector3.Lerp(monsterFrom, monsterTo, eased);
+            activeMonster.transform.localScale = Vector3.Lerp(monsterScaleFrom, monsterScaleTo, eased);
+
+            yield return null;
+        }
+
+        activePlayer.transform.position = playerTo;
+        activePlayer.transform.localScale = playerScaleTo;
+
+        activeMonster.transform.position = monsterTo;
+        activeMonster.transform.localScale = monsterScaleTo;
+    }
+}
