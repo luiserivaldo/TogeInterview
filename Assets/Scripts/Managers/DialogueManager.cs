@@ -252,7 +252,7 @@ public class DialogueManager : MonoBehaviour
             }
         }
 
-        yield return new WaitUntil(IsDialogueSubmitPressed);
+        yield return StartCoroutine(WaitForFreshSubmit());
     }
 
     private IEnumerator ExecuteShowChoice(DialogueCommandData command)
@@ -280,6 +280,8 @@ public class DialogueManager : MonoBehaviour
 
             yield return null;
         }
+
+        yield return null;
 
         lastChoiceIndex = resolvedChoice;
         lastChoiceKey = resolvedChoice >= 0 && resolvedChoice < command.options.Count
@@ -410,5 +412,22 @@ public class DialogueManager : MonoBehaviour
     private bool IsDialogueSubmitPressed()
     {
         return Input.GetKeyDown(KeyCode.Z) || Input.GetButtonDown("Submit");
+    }
+
+    private bool IsDialogueSubmitHeld()
+    {
+        return Input.GetKey(KeyCode.Z) || Input.GetButton("Submit");
+    }
+
+    private IEnumerator WaitForFreshSubmit()
+    {
+        yield return null;
+
+        while (IsDialogueSubmitHeld())
+        {
+            yield return null;
+        }
+
+        yield return new WaitUntil(IsDialogueSubmitPressed);
     }
 }
