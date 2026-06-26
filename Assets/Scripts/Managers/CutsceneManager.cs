@@ -199,7 +199,10 @@ ContinueSequence:
             yield break;
         }
 
-        UIManager.Instance.ShowMessage(step.dialogueText ?? string.Empty);
+        UIManager.Instance.ShowDialogueUI();
+        UIManager.Instance.SetDialogueChoicesVisible(false);
+        UIManager.Instance.SetDialogueImage(null);
+        UIManager.Instance.SetDialogueText(step.dialogueText ?? string.Empty);
 
         if (step.requireInput)
         {
