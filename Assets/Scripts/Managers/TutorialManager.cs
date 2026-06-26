@@ -1,5 +1,6 @@
-using UnityEngine;
+using System;
 
-public class TutorialManager : MonoBehaviour
+[Obsolete("TutorialManager has been merged into CutsceneManager. Use CutsceneManager instead.")]
+public class TutorialManager : CutsceneManager
 {
 }
