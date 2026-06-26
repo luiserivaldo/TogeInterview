@@ -1626,6 +1626,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 187157771}
   m_CullTransparentMesh: 1
+--- !u!1 &219087847
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 219087848}
+  - component: {fileID: 219087849}
+  m_Layer: 0
+  m_Name: CutsceneMovePointer (step5)
+  m_TagString: Untagged
+  m_Icon: {fileID: 3306451490063965843, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &219087848
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 219087847}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -369.8037, y: -248.83673, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1535455985}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &219087849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 219087847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a54bd66d1284eb592d116e0a2b8a957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CutsceneMovePointer
 --- !u!1 &228457354
 GameObject:
   m_ObjectHideFlags: 0
@@ -62843,6 +62887,50 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 49504006552336536, guid: 936c342071236cd41887e16cadf8a55c, type: 3}
   m_PrefabInstance: {fileID: 965060998}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &978239072
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 978239073}
+  - component: {fileID: 978239074}
+  m_Layer: 0
+  m_Name: CutsceneMovePointer (step6)
+  m_TagString: Untagged
+  m_Icon: {fileID: 3306451490063965843, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &978239073
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 978239072}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -374.8037, y: -244.83673, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1535455985}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &978239074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 978239072}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a54bd66d1284eb592d116e0a2b8a957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CutsceneMovePointer
 --- !u!1 &988952144
 GameObject:
   m_ObjectHideFlags: 0
@@ -65074,7 +65162,6 @@ PrefabInstance:
       value: Respawn all monsters (5GP)
       objectReference: {fileID: 0}
     - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
-      propertyPath: tutorialDialogueScript
       value: 
       objectReference: {fileID: 11400000, guid: 1e5560ce5e6a4066b9694eab1cc21f1c, type: 2}
     m_RemovedComponents: []
@@ -67878,6 +67965,56 @@ MonoBehaviour:
     moveSpeedOverride: 10
     choiceA: A
     choiceB: B
+  - sceneType: 0
+    dialogueText: It's time to d-d-d-duel!
+    requireInput: 1
+    textSpeed: 45
+    nextTextDelay: 0.5
+    moveTo: {fileID: 0}
+    overrideMoveSpeed: 0
+    moveSpeedOverride: 10
+    choiceA: A
+    choiceB: B
+  - sceneType: 1
+    dialogueText: 
+    requireInput: 1
+    textSpeed: 45
+    nextTextDelay: 0.5
+    moveTo: {fileID: 1815722017}
+    overrideMoveSpeed: 0
+    moveSpeedOverride: 10
+    choiceA: A
+    choiceB: B
+  - sceneType: 1
+    dialogueText: 
+    requireInput: 1
+    textSpeed: 45
+    nextTextDelay: 0.5
+    moveTo: {fileID: 219087848}
+    overrideMoveSpeed: 0
+    moveSpeedOverride: 10
+    choiceA: A
+    choiceB: B
+  - sceneType: 1
+    dialogueText: 
+    requireInput: 1
+    textSpeed: 45
+    nextTextDelay: 0.5
+    moveTo: {fileID: 978239073}
+    overrideMoveSpeed: 0
+    moveSpeedOverride: 10
+    choiceA: A
+    choiceB: B
+  - sceneType: 0
+    dialogueText: 
+    requireInput: 1
+    textSpeed: 45
+    nextTextDelay: 0.5
+    moveTo: {fileID: 0}
+    overrideMoveSpeed: 0
+    moveSpeedOverride: 10
+    choiceA: A
+    choiceB: B
 --- !u!4 &1535455985
 Transform:
   m_ObjectHideFlags: 0
@@ -67892,6 +68029,9 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1132673226}
+  - {fileID: 1815722017}
+  - {fileID: 219087848}
+  - {fileID: 978239073}
   m_Father: {fileID: 362513571}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1565252342
@@ -77410,6 +77550,50 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 49504006552336536, guid: 4be65228dad044542be2b085105d073f, type: 3}
   m_PrefabInstance: {fileID: 1811018668}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1815722016
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1815722017}
+  - component: {fileID: 1815722018}
+  m_Layer: 0
+  m_Name: CutsceneMovePointer (step4)
+  m_TagString: Untagged
+  m_Icon: {fileID: 3306451490063965843, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1815722017
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1815722016}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -376.8037, y: -250.83673, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1535455985}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1815722018
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1815722016}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a54bd66d1284eb592d116e0a2b8a957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CutsceneMovePointer
 --- !u!1001 &1819758912
 PrefabInstance:
   m_ObjectHideFlags: 0

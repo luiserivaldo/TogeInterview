@@ -1319,7 +1319,6 @@ PrefabInstance:
       value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
-      propertyPath: tutorialDialogueScript
       value: 
       objectReference: {fileID: 11400000, guid: 245782f33b694e0d95f22377e92f027a, type: 2}
     m_RemovedComponents: []
@@ -66080,7 +66079,6 @@ PrefabInstance:
       value: Respawn all monsters (5GP)
       objectReference: {fileID: 0}
     - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
-      propertyPath: tutorialDialogueScript
       value: 
       objectReference: {fileID: 11400000, guid: 1e5560ce5e6a4066b9694eab1cc21f1c, type: 2}
     m_RemovedComponents: []

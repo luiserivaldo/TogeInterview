@@ -154,8 +154,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   signType: 2
   objectType: 1
-  tutorialDialogueScript: {fileID: 0}
-  dialogueImage: {fileID: 0}
   additionalMessage: 
   overrideMessage: 0
 --- !u!114 &2228627322864856040

@@ -19,9 +19,6 @@ public class InteractableObject : MonoBehaviour
     public SignType signType = SignType.None;
     public InteractableType objectType;
 
-    [Header("Tutorial Dialogue")]
-    public DialogueScript_ScriptableObject tutorialDialogueScript;
-    public Sprite dialogueImage;
 
     [TextArea(2, 5)] // For nicer editing in Inspector
     public string additionalMessage = "";

@@ -59,16 +59,6 @@ public class DialogueManager : MonoBehaviour
         HideDialogueUI();
     }
 
-    public void StartTutorialPrompt(InteractableObject interactable)
-    {
-        if (interactable == null)
-        {
-            return;
-        }
-
-        StopDialogue(false);
-        dialogueRoutine = StartCoroutine(RunTutorialPromptRoutine(interactable));
-    }
 
     public void StartScript(DialogueScript_ScriptableObject script, Sprite fallbackImage = null, Action onComplete = null)
     {
@@ -98,34 +88,6 @@ public class DialogueManager : MonoBehaviour
         {
             GameManager.SetGameplayLocked(false);
         }
-    }
-
-    private IEnumerator RunTutorialPromptRoutine(InteractableObject interactable)
-    {
-        BeginDialogue(interactable != null ? interactable.dialogueImage : null, null);
-
-        int selectedChoice = -1;
-
-        UIManager.Instance.SetDialogueText("Play tutorial?");
-        UIManager.Instance.SetDialogueChoicesVisible(true, "Yes", "No");
-        UIManager.Instance.BindDialogueChoiceHandlers(
-            () => selectedChoice = 0,
-            () => selectedChoice = 1);
-        UIManager.Instance.SelectDialogueDefaultAction();
-
-        while (selectedChoice < 0)
-        {
-            yield return null;
-        }
-
-        UIManager.Instance.SetDialogueChoicesVisible(false);
-
-        if (selectedChoice == 0 && interactable != null && interactable.tutorialDialogueScript != null)
-        {
-            yield return StartCoroutine(ExecuteScript(interactable.tutorialDialogueScript, interactable.dialogueImage));
-        }
-
-        EndDialogue();
     }
 
     private IEnumerator RunScriptRoutine(DialogueScript_ScriptableObject script, Sprite fallbackImage, Action onComplete)
