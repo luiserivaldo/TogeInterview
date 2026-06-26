@@ -1343,7 +1343,7 @@ GameObject:
   - component: {fileID: 174316471}
   - component: {fileID: 174316470}
   m_Layer: 0
-  m_Name: TutorialManager
+  m_Name: CutsceneManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1358,9 +1358,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 174316469}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7c9dcb58d1d644f7af4a302496400fe5, type: 3}
+  m_Script: {fileID: 11500000, guid: 16e54cb7086740f3a54ac090ac5b253b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TutorialManager
+  m_EditorClassIdentifier: Assembly-CSharp::CutsceneManager
   cutsceneEvents: []
   lockGameplayDuringSequence: 1
 --- !u!4 &174316471
@@ -58659,7 +58659,6 @@ MonoBehaviour:
   triggerType: 0
   requiredTriggerTag: Player
   steps:
-  - pointer: {fileID: 0}
     sceneType: 1
     dialogueText: 
     requireInput: 1
@@ -68259,7 +68258,6 @@ MonoBehaviour:
   triggerType: 0
   requiredTriggerTag: Player
   steps:
-  - pointer: {fileID: 0}
     sceneType: 0
     dialogueText: When you collide with an enemy., combat is initiated!
     requireInput: 1
@@ -68268,7 +68266,6 @@ MonoBehaviour:
     moveTo: {fileID: 0}
     choiceA: A
     choiceB: B
-  - pointer: {fileID: 0}
     sceneType: 0
     dialogueText: 
     requireInput: 1
@@ -70267,7 +70264,6 @@ MonoBehaviour:
   triggerType: 1
   requiredTriggerTag: Player
   steps:
-  - pointer: {fileID: 0}
     sceneType: 1
     dialogueText: 
     requireInput: 1
@@ -70276,7 +70272,6 @@ MonoBehaviour:
     moveTo: {fileID: 516881863}
     choiceA: A
     choiceB: B
-  - pointer: {fileID: 0}
     sceneType: 0
     dialogueText: Hey, you look new around here.
     requireInput: 1
@@ -70285,7 +70280,6 @@ MonoBehaviour:
     moveTo: {fileID: 0}
     choiceA: A
     choiceB: B
-  - pointer: {fileID: 0}
     sceneType: 0
     dialogueText: Let me show you how to fight!
     requireInput: 1

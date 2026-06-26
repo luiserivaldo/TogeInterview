@@ -15,7 +15,6 @@ public class CutsceneEvent : MonoBehaviour
             ShowChoice
         }
 
-        public CutscenePointer pointer;
         public SceneType sceneType = SceneType.ShowText;
 
         [TextArea(2, 5)]
@@ -96,10 +95,6 @@ public class CutsceneEvent : MonoBehaviour
         CutsceneStep step = steps[stepIndex];
         Transform moveTarget = step?.moveTo;
 
-        if (step?.pointer != null)
-        {
-            UnityEditor.Undo.DestroyObjectImmediate(step.pointer.gameObject);
-        }
 
         if (step?.sceneType == CutsceneStep.SceneType.MoveActor &&
             moveTarget != null &&

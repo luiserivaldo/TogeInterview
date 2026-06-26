@@ -75130,7 +75130,6 @@ MonoBehaviour:
   triggerType: 1
   requiredTriggerTag: Player
   steps:
-  - pointer: {fileID: 0}
     sceneType: 1
     dialogueText: 
     requireInput: 1
@@ -75139,7 +75138,6 @@ MonoBehaviour:
     moveTo: {fileID: 692038025}
     choiceA: A
     choiceB: B
-  - pointer: {fileID: 0}
     sceneType: 0
     dialogueText: Hey! Do you need any help?
     requireInput: 1
@@ -75148,7 +75146,6 @@ MonoBehaviour:
     moveTo: {fileID: 0}
     choiceA: A
     choiceB: B
-  - pointer: {fileID: 0}
     sceneType: 0
     dialogueText: I'm just a blacksmith. I sell items.
     requireInput: 1
@@ -75157,7 +75154,6 @@ MonoBehaviour:
     moveTo: {fileID: 0}
     choiceA: A
     choiceB: B
-  - pointer: {fileID: 0}
     sceneType: 0
     dialogueText: Goodbye.
     requireInput: 1
@@ -75166,7 +75162,6 @@ MonoBehaviour:
     moveTo: {fileID: 0}
     choiceA: A
     choiceB: B
-  - pointer: {fileID: 0}
     sceneType: 1
     dialogueText: 
     requireInput: 1

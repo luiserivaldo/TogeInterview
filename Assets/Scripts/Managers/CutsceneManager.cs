@@ -55,10 +55,6 @@ public class CutsceneManager : MonoBehaviour
         TryStartSceneEvent();
     }
 
-    public void TryStartEvent(CutsceneEvent cutsceneEvent, CutscenePointer pointer, Collider2D triggeringCollider = null)
-    {
-        TryStartEvent(cutsceneEvent, triggeringCollider);
-    }
 
     public void TryStartEvent(CutsceneEvent cutsceneEvent, Collider2D triggeringCollider = null)
     {
@@ -88,14 +84,6 @@ public class CutsceneManager : MonoBehaviour
         activeSequenceRoutine = StartCoroutine(PlayEventSequence(cutsceneEvent, 0));
     }
 
-    public IEnumerator PlayScript(DialogueScript_ScriptableObject script, Sprite defaultImage = null)
-    {
-        DialogueManager.Instance.StartScript(script, defaultImage);
-        while (DialogueManager.Instance.IsDialogueRunning)
-        {
-            yield return null;
-        }
-    }
 
     private IEnumerator PlayEventSequence(CutsceneEvent initialEvent, int startStepIndex)
     {
@@ -215,7 +203,10 @@ ContinueSequence:
             yield break;
         }
 
-        UIManager.Instance.ShowMessage(step.dialogueText ?? string.Empty);
+        UIManager.Instance.ShowDialogueUI();
+        UIManager.Instance.SetDialogueChoicesVisible(false);
+        UIManager.Instance.SetDialogueImage(null);
+        UIManager.Instance.SetDialogueText(step.dialogueText ?? string.Empty);
 
         if (step.requireInput)
         {
