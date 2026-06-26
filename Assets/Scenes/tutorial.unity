@@ -519,50 +519,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 57665558}
   m_CullTransparentMesh: 1
---- !u!1 &68387085
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 68387087}
-  - component: {fileID: 68387086}
-  m_Layer: 0
-  m_Name: CutscenePointer_3
-  m_TagString: Untagged
-  m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &68387086
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 68387085}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3b7a6705fe934450a13ac0a1bf54f79e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CutscenePointer
---- !u!4 &68387087
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 68387085}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2, y: 1, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1799296683}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &79432157
 GameObject:
   m_ObjectHideFlags: 0
@@ -1363,7 +1319,6 @@ PrefabInstance:
       value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
-      propertyPath: tutorialDialogueScript
       value: 
       objectReference: {fileID: 11400000, guid: 245782f33b694e0d95f22377e92f027a, type: 2}
     m_RemovedComponents: []
@@ -1387,7 +1342,7 @@ GameObject:
   - component: {fileID: 174316471}
   - component: {fileID: 174316470}
   m_Layer: 0
-  m_Name: TutorialManager
+  m_Name: CutsceneManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1402,9 +1357,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 174316469}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7c9dcb58d1d644f7af4a302496400fe5, type: 3}
+  m_Script: {fileID: 11500000, guid: 16e54cb7086740f3a54ac090ac5b253b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TutorialManager
+  m_EditorClassIdentifier: Assembly-CSharp::CutsceneManager
   cutsceneEvents: []
   lockGameplayDuringSequence: 1
 --- !u!4 &174316471
@@ -58680,7 +58635,7 @@ GameObject:
   - component: {fileID: 286502635}
   - component: {fileID: 286502634}
   m_Layer: 0
-  m_Name: Event12
+  m_Name: Event2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -58698,12 +58653,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08f26c9ca3074cbdbb69147eef28bf39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CutsceneEvent
-  eventId: Event12
+  eventId: Event2
   actor: {fileID: 1040868484}
   triggerType: 0
   requiredTriggerTag: Player
   steps:
-  - pointer: {fileID: 1968475436}
     sceneType: 1
     dialogueText: 
     requireInput: 1
@@ -58725,7 +58679,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1968475435}
   - {fileID: 111852635}
   m_Father: {fileID: 665314093}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -60155,6 +60108,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 513763422}
   m_CullTransparentMesh: 1
+--- !u!1 &516881862
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 516881863}
+  - component: {fileID: 516881864}
+  m_Layer: 0
+  m_Name: CutsceneMovePointer_1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &516881863
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 516881862}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1799296683}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &516881864
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 516881862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a54bd66d1284eb592d116e0a2b8a957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CutsceneMovePointer
 --- !u!1 &522830083
 GameObject:
   m_ObjectHideFlags: 0
@@ -60638,50 +60635,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 49504006552336536, guid: 936c342071236cd41887e16cadf8a55c, type: 3}
   m_PrefabInstance: {fileID: 545506202}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &546992872
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 546992874}
-  - component: {fileID: 546992873}
-  m_Layer: 0
-  m_Name: CutscenePointer_2
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &546992873
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 546992872}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3b7a6705fe934450a13ac0a1bf54f79e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CutscenePointer
---- !u!4 &546992874
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 546992872}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1592281996}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &562451167
 GameObject:
   m_ObjectHideFlags: 0
@@ -61600,6 +61553,7 @@ MonoBehaviour:
   - {fileID: 1799296682}
   - {fileID: 286502634}
   - {fileID: 1592281995}
+  - {fileID: 0}
   lockGameplayDuringSequence: 1
 --- !u!4 &665314093
 Transform:
@@ -65323,50 +65277,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1097647859}
   m_CullTransparentMesh: 1
---- !u!1 &1111629138
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1111629140}
-  - component: {fileID: 1111629139}
-  m_Layer: 0
-  m_Name: CutscenePointer_2
-  m_TagString: Untagged
-  m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1111629139
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1111629138}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3b7a6705fe934450a13ac0a1bf54f79e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CutscenePointer
---- !u!4 &1111629140
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1111629138}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3, y: 1, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1799296683}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1128800342
 GameObject:
   m_ObjectHideFlags: 0
@@ -66169,7 +66079,6 @@ PrefabInstance:
       value: Respawn all monsters (5GP)
       objectReference: {fileID: 0}
     - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
-      propertyPath: tutorialDialogueScript
       value: 
       objectReference: {fileID: 11400000, guid: 1e5560ce5e6a4066b9694eab1cc21f1c, type: 2}
     m_RemovedComponents: []
@@ -68324,7 +68233,7 @@ GameObject:
   - component: {fileID: 1592281996}
   - component: {fileID: 1592281995}
   m_Layer: 0
-  m_Name: Event1
+  m_Name: Event3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -68342,12 +68251,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08f26c9ca3074cbdbb69147eef28bf39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CutsceneEvent
-  eventId: Event1
+  eventId: Event3
   actor: {fileID: 101366575}
   triggerType: 0
   requiredTriggerTag: Player
   steps:
-  - pointer: {fileID: 1959558220}
     sceneType: 0
     dialogueText: When you collide with an enemy., combat is initiated!
     requireInput: 1
@@ -68356,7 +68264,6 @@ MonoBehaviour:
     moveTo: {fileID: 0}
     choiceA: A
     choiceB: B
-  - pointer: {fileID: 546992873}
     sceneType: 0
     dialogueText: 
     requireInput: 1
@@ -68377,9 +68284,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1959558219}
-  - {fileID: 546992874}
+  m_Children: []
   m_Father: {fileID: 665314093}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1593546458
@@ -70357,16 +70262,14 @@ MonoBehaviour:
   triggerType: 1
   requiredTriggerTag: Player
   steps:
-  - pointer: {fileID: 1111629139}
     sceneType: 1
     dialogueText: 
     requireInput: 1
     textSpeed: 45
     nextTextDelay: 0.5
-    moveTo: {fileID: 0}
+    moveTo: {fileID: 516881863}
     choiceA: A
     choiceB: B
-  - pointer: {fileID: 1111629139}
     sceneType: 0
     dialogueText: Hey, you look new around here.
     requireInput: 1
@@ -70375,7 +70278,6 @@ MonoBehaviour:
     moveTo: {fileID: 0}
     choiceA: A
     choiceB: B
-  - pointer: {fileID: 68387086}
     sceneType: 0
     dialogueText: Let me show you how to fight!
     requireInput: 1
@@ -70397,8 +70299,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1111629140}
-  - {fileID: 68387087}
+  - {fileID: 516881863}
   m_Father: {fileID: 665314093}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1809022434
@@ -71185,94 +71086,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 49504006552336536, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
   m_PrefabInstance: {fileID: 1931374046}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1959558218
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1959558219}
-  - component: {fileID: 1959558220}
-  m_Layer: 0
-  m_Name: CutscenePointer_1
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1959558219
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1959558218}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1592281996}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1959558220
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1959558218}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3b7a6705fe934450a13ac0a1bf54f79e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CutscenePointer
---- !u!1 &1968475434
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1968475435}
-  - component: {fileID: 1968475436}
-  m_Layer: 0
-  m_Name: CutscenePointer_1
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1968475435
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1968475434}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 286502635}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1968475436
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1968475434}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3b7a6705fe934450a13ac0a1bf54f79e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CutscenePointer
 --- !u!1 &1974187319
 GameObject:
   m_ObjectHideFlags: 0

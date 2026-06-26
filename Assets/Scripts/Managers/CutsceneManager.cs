@@ -48,7 +48,6 @@ public class CutsceneManager : MonoBehaviour
             return;
         }
 
-        BindPointers();
     }
 
     private void Start()
@@ -56,20 +55,15 @@ public class CutsceneManager : MonoBehaviour
         TryStartSceneEvent();
     }
 
-    public void TryStartEvent(CutsceneEvent cutsceneEvent, CutscenePointer pointer, Collider2D triggeringCollider = null)
+
+    public void TryStartEvent(CutsceneEvent cutsceneEvent, Collider2D triggeringCollider = null)
     {
-        if (cutsceneEvent == null || pointer == null || activeSequenceRoutine != null)
+        if (cutsceneEvent == null || activeSequenceRoutine != null)
         {
             return;
         }
 
         if (!cutsceneEvents.Contains(cutsceneEvent))
-        {
-            return;
-        }
-
-        int stepIndex = FindStepIndex(cutsceneEvent, pointer);
-        if (stepIndex < 0)
         {
             return;
         }
@@ -87,17 +81,9 @@ public class CutsceneManager : MonoBehaviour
             }
         }
 
-        activeSequenceRoutine = StartCoroutine(PlayEventSequence(cutsceneEvent, stepIndex));
+        activeSequenceRoutine = StartCoroutine(PlayEventSequence(cutsceneEvent, 0));
     }
 
-    public IEnumerator PlayScript(DialogueScript_ScriptableObject script, Sprite defaultImage = null)
-    {
-        DialogueManager.Instance.StartScript(script, defaultImage);
-        while (DialogueManager.Instance.IsDialogueRunning)
-        {
-            yield return null;
-        }
-    }
 
     private IEnumerator PlayEventSequence(CutsceneEvent initialEvent, int startStepIndex)
     {
@@ -114,7 +100,7 @@ public class CutsceneManager : MonoBehaviour
             for (int stepIndex = currentStepIndex; stepIndex < steps.Count; stepIndex++)
             {
                 CutsceneEvent.CutsceneStep step = steps[stepIndex];
-                if (step == null || step.pointer == null)
+                if (step == null)
                 {
                     continue;
                 }
@@ -174,21 +160,64 @@ ContinueSequence:
         }
     }
 
-    private IEnumerator ExecuteMove(CutsceneEvent cutsceneEvent, CutsceneEvent.CutsceneStep step)
+    private IEnumerator ExecuteMove(
+        CutsceneEvent cutsceneEvent,
+        CutsceneEvent.CutsceneStep step)
     {
         if (cutsceneEvent.Actor == null || step.moveTo == null)
         {
-            Debug.LogWarning($"Cutscene step '{step.pointer.name}' has a move action without an actor or move target.");
+            string stepName = step.moveTo != null
+            ? step.moveTo.name
+            : step.sceneType.ToString();
+
+            Debug.LogWarning(
+                $"Cutscene step '{stepName}' has a move action " +
+                "without an actor or move target."
+            );
+
             yield break;
         }
 
-        NPCPointerMover mover = cutsceneEvent.Actor.GetComponent<NPCPointerMover>();
+        GridMovement mover = cutsceneEvent.Actor.GetComponent<GridMovement>();
+
         if (mover == null)
         {
-            mover = cutsceneEvent.Actor.AddComponent<NPCPointerMover>();
+            Debug.LogWarning(
+                $"Cutscene actor '{cutsceneEvent.Actor.name}' " +
+                "does not have a GridMover component."
+            );
+
+            yield break;
         }
 
-        yield return StartCoroutine(mover.MoveTo(step.moveTo.position));
+        float originalMoveSpeed = mover.MoveSpeed;
+
+        try
+        {
+            if (step.overrideMoveSpeed)
+            {
+                mover.MoveSpeed = step.moveSpeedOverride;
+            }
+
+            bool movementStarted =
+            mover.MoveToGridPosition(step.moveTo.position);
+
+            if (!movementStarted)
+            {
+                Debug.LogWarning(
+                    $"Cutscene actor '{cutsceneEvent.Actor.name}' could not begin " +
+                    $"moving toward '{step.moveTo.name}'."
+                );
+
+                yield break;
+            }
+
+            yield return new WaitUntil(() => !mover.IsMoving);
+        }
+        finally
+        {
+            mover.MoveSpeed = originalMoveSpeed;
+        }
     }
 
     private IEnumerator ExecuteText(CutsceneEvent.CutsceneStep step)
@@ -227,12 +256,31 @@ ContinueSequence:
 
     private IEnumerator WaitForSubmit()
     {
-        while (!Input.GetButtonDown("Submit") && !Input.GetKeyDown(KeyCode.Space) && !Input.GetMouseButtonDown(0))
+        yield return null;
+
+        while (IsCutsceneSubmitHeld())
         {
             yield return null;
         }
 
+        yield return new WaitUntil(IsCutsceneSubmitPressed);
         yield return null;
+    }
+
+    private static bool IsCutsceneSubmitPressed()
+    {
+        return Input.GetKeyDown(KeyCode.Z)
+            || Input.GetButtonDown("Submit")
+            || Input.GetKeyDown(KeyCode.Space)
+            || Input.GetMouseButtonDown(0);
+    }
+
+    private static bool IsCutsceneSubmitHeld()
+    {
+        return Input.GetKey(KeyCode.Z)
+            || Input.GetButton("Submit")
+            || Input.GetKey(KeyCode.Space)
+            || Input.GetMouseButton(0);
     }
 
     private void TryStartSceneEvent()
@@ -245,7 +293,7 @@ ContinueSequence:
         for (int i = 0; i < cutsceneEvents.Count; i++)
         {
             CutsceneEvent cutsceneEvent = cutsceneEvents[i];
-            if (cutsceneEvent != null && cutsceneEvent.EventTriggerType == CutsceneEvent.TriggerType.SceneStart && cutsceneEvent.Steps.Count > 0 && cutsceneEvent.Steps[0]?.pointer != null)
+            if (cutsceneEvent != null && cutsceneEvent.EventTriggerType == CutsceneEvent.TriggerType.SceneStart && cutsceneEvent.Steps.Count > 0)
             {
                 activeSequenceRoutine = StartCoroutine(PlayEventSequence(cutsceneEvent, 0));
                 return;
@@ -264,31 +312,6 @@ ContinueSequence:
             UIManager.Instance.HideMessage();
             UIManager.Instance.HideDialogueUI();
         }
-    }
-
-    private void BindPointers()
-    {
-        for (int i = 0; i < cutsceneEvents.Count; i++)
-        {
-            if (cutsceneEvents[i] != null)
-            {
-                cutsceneEvents[i].BindPointers(this);
-            }
-        }
-    }
-
-    private static int FindStepIndex(CutsceneEvent cutsceneEvent, CutscenePointer pointer)
-    {
-        IReadOnlyList<CutsceneEvent.CutsceneStep> steps = cutsceneEvent.Steps;
-        for (int i = 0; i < steps.Count; i++)
-        {
-            if (steps[i]?.pointer == pointer)
-            {
-                return i;
-            }
-        }
-
-        return -1;
     }
 
     private CutsceneEvent FindEventById(string eventId)
@@ -315,14 +338,51 @@ ContinueSequence:
     {
         UnityEditor.Undo.RecordObject(this, "Add Cutscene Event");
 
-        string eventId = $"Event{cutsceneEvents.Count + 1}";
-        GameObject eventObject = new GameObject(eventId);
+        GameObject eventObject = new GameObject();
         UnityEditor.Undo.RegisterCreatedObjectUndo(eventObject, "Create Cutscene Event");
         eventObject.transform.SetParent(transform, false);
 
         CutsceneEvent cutsceneEvent = eventObject.AddComponent<CutsceneEvent>();
         cutsceneEvents.Add(cutsceneEvent);
+        EditorSyncCutsceneEvents();
         cutsceneEvent.EditorAddStep(this);
+        UnityEditor.EditorUtility.SetDirty(this);
+    }
+
+    public void EditorRemoveCutsceneEvent(int index)
+    {
+        if (index < 0 || index >= cutsceneEvents.Count)
+        {
+            return;
+        }
+
+        UnityEditor.Undo.RecordObject(this, "Remove Cutscene Event");
+
+        CutsceneEvent cutsceneEvent = cutsceneEvents[index];
+        cutsceneEvents.RemoveAt(index);
+
+        if (cutsceneEvent != null)
+        {
+            UnityEditor.Undo.DestroyObjectImmediate(cutsceneEvent.gameObject);
+        }
+
+        EditorSyncCutsceneEvents();
+        UnityEditor.EditorUtility.SetDirty(this);
+    }
+
+    public void EditorSyncCutsceneEvents()
+    {
+        for (int i = 0; i < cutsceneEvents.Count; i++)
+        {
+            CutsceneEvent cutsceneEvent = cutsceneEvents[i];
+            if (cutsceneEvent == null)
+            {
+                continue;
+            }
+
+            cutsceneEvent.EditorSetEventId($"Event{i + 1}");
+        }
+
         UnityEditor.EditorUtility.SetDirty(this);
     }
 #endif

@@ -108,12 +108,6 @@ public class GameManager : MonoBehaviour
 
     private void HandleSign(InteractableObject sign)
     {
-        if (sign != null && sign.signType == InteractableObject.SignType.TutorialSign)
-        {
-            DialogueManager.Instance.StartTutorialPrompt(sign);
-            return;
-        }
-
         Debug.Log("This is a Sign.");
     }
 

@@ -52,17 +52,22 @@ public class CutsceneEventEditor : Editor
             }
 
             SerializedProperty stepProperty = stepsProperty.GetArrayElementAtIndex(index);
-            SerializedProperty pointerProperty = stepProperty.FindPropertyRelative("pointer");
             SerializedProperty sceneTypeProperty = stepProperty.FindPropertyRelative("sceneType");
             SerializedProperty dialogueTextProperty = stepProperty.FindPropertyRelative("dialogueText");
             SerializedProperty requireInputProperty = stepProperty.FindPropertyRelative("requireInput");
             SerializedProperty textSpeedProperty = stepProperty.FindPropertyRelative("textSpeed");
             SerializedProperty nextTextDelayProperty = stepProperty.FindPropertyRelative("nextTextDelay");
             SerializedProperty moveToProperty = stepProperty.FindPropertyRelative("moveTo");
+
+            SerializedProperty overrideMoveSpeedProperty =
+            stepProperty.FindPropertyRelative("overrideMoveSpeed");
+
+            SerializedProperty moveSpeedOverrideProperty =
+            stepProperty.FindPropertyRelative("moveSpeedOverride");
+
             SerializedProperty choiceAProperty = stepProperty.FindPropertyRelative("choiceA");
             SerializedProperty choiceBProperty = stepProperty.FindPropertyRelative("choiceB");
 
-            totalHeight += EditorGUI.GetPropertyHeight(pointerProperty, true) + spacing;
             totalHeight += EditorGUI.GetPropertyHeight(sceneTypeProperty, true) + spacing;
 
             CutsceneEvent.CutsceneStep.SceneType sceneType =
@@ -79,6 +84,13 @@ public class CutsceneEventEditor : Editor
 
                 case CutsceneEvent.CutsceneStep.SceneType.MoveActor:
                     totalHeight += EditorGUI.GetPropertyHeight(moveToProperty, true) + spacing;
+                    totalHeight += EditorGUI.GetPropertyHeight(overrideMoveSpeedProperty, true) + spacing;
+
+                    if (overrideMoveSpeedProperty.boolValue)
+                    {
+                        totalHeight += EditorGUI.GetPropertyHeight(moveSpeedOverrideProperty, true) + spacing;
+                    }
+
                     break;
 
                 case CutsceneEvent.CutsceneStep.SceneType.ShowChoice:
@@ -96,13 +108,19 @@ public class CutsceneEventEditor : Editor
             SyncFoldoutCount();
 
             SerializedProperty stepProperty = stepsProperty.GetArrayElementAtIndex(index);
-            SerializedProperty pointerProperty = stepProperty.FindPropertyRelative("pointer");
             SerializedProperty sceneTypeProperty = stepProperty.FindPropertyRelative("sceneType");
             SerializedProperty dialogueTextProperty = stepProperty.FindPropertyRelative("dialogueText");
             SerializedProperty requireInputProperty = stepProperty.FindPropertyRelative("requireInput");
             SerializedProperty textSpeedProperty = stepProperty.FindPropertyRelative("textSpeed");
             SerializedProperty nextTextDelayProperty = stepProperty.FindPropertyRelative("nextTextDelay");
             SerializedProperty moveToProperty = stepProperty.FindPropertyRelative("moveTo");
+
+            SerializedProperty overrideMoveSpeedProperty =
+            stepProperty.FindPropertyRelative("overrideMoveSpeed");
+
+            SerializedProperty moveSpeedOverrideProperty =
+            stepProperty.FindPropertyRelative("moveSpeedOverride");
+
             SerializedProperty choiceAProperty = stepProperty.FindPropertyRelative("choiceA");
             SerializedProperty choiceBProperty = stepProperty.FindPropertyRelative("choiceB");
 
@@ -130,14 +148,6 @@ public class CutsceneEventEditor : Editor
             }
 
             float h;
-
-            h = EditorGUI.GetPropertyHeight(pointerProperty, true);
-            row = new Rect(contentRect.x, y, contentRect.width, h);
-            using (new EditorGUI.DisabledScope(true))
-            {
-                EditorGUI.PropertyField(row, pointerProperty, true);
-            }
-            y += h + spacing;
 
             EditorGUI.BeginChangeCheck();
             h = EditorGUI.GetPropertyHeight(sceneTypeProperty, true);
@@ -176,8 +186,37 @@ public class CutsceneEventEditor : Editor
                 case CutsceneEvent.CutsceneStep.SceneType.MoveActor:
                     h = EditorGUI.GetPropertyHeight(moveToProperty, true);
                     row = new Rect(contentRect.x, y, contentRect.width, h);
-                    EditorGUI.PropertyField(row, moveToProperty, new GUIContent("Move To"), true);
+                    EditorGUI.PropertyField(
+                        row,
+                        moveToProperty,
+                        new GUIContent("Move To"),
+                                            true
+                    );
                     y += h + spacing;
+
+                    h = EditorGUI.GetPropertyHeight(overrideMoveSpeedProperty, true);
+                    row = new Rect(contentRect.x, y, contentRect.width, h);
+                    EditorGUI.PropertyField(
+                        row,
+                        overrideMoveSpeedProperty,
+                        new GUIContent("Override Move Speed"),
+                                            true
+                    );
+                    y += h + spacing;
+
+                    if (overrideMoveSpeedProperty.boolValue)
+                    {
+                        h = EditorGUI.GetPropertyHeight(moveSpeedOverrideProperty, true);
+                        row = new Rect(contentRect.x, y, contentRect.width, h);
+                        EditorGUI.PropertyField(
+                            row,
+                            moveSpeedOverrideProperty,
+                            new GUIContent("Move Speed"),
+                                                true
+                        );
+                        y += h + spacing;
+                    }
+
                     break;
 
                 case CutsceneEvent.CutsceneStep.SceneType.ShowChoice:
