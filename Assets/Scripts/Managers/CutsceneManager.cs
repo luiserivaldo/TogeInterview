@@ -190,9 +190,34 @@ ContinueSequence:
             yield break;
         }
 
-        mover.MoveToGridPosition(step.moveTo.position);
+        float originalMoveSpeed = mover.MoveSpeed;
 
-        yield return new WaitUntil(() => !mover.IsMoving);
+        try
+        {
+            if (step.overrideMoveSpeed)
+            {
+                mover.MoveSpeed = step.moveSpeedOverride;
+            }
+
+            bool movementStarted =
+            mover.MoveToGridPosition(step.moveTo.position);
+
+            if (!movementStarted)
+            {
+                Debug.LogWarning(
+                    $"Cutscene actor '{cutsceneEvent.Actor.name}' could not begin " +
+                    $"moving toward '{step.moveTo.name}'."
+                );
+
+                yield break;
+            }
+
+            yield return new WaitUntil(() => !mover.IsMoving);
+        }
+        finally
+        {
+            mover.MoveSpeed = originalMoveSpeed;
+        }
     }
 
     private IEnumerator ExecuteText(CutsceneEvent.CutsceneStep step)

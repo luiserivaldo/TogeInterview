@@ -6,7 +6,7 @@ public class GridMovement : MonoBehaviour
 {
     [Header("Grid Movement")]
     [SerializeField, Min(0.01f)] private float gridSize = 1f;
-    [SerializeField, Min(0.01f)] private float moveSpeed = 10f;
+    [SerializeField, Min(0.01f)] private float moveSpeed = 5f;
 
     [Header("Collision")]
     [SerializeField] private LayerMask blockingLayers;

@@ -24,6 +24,12 @@ public class CutsceneEvent : MonoBehaviour
         public float textSpeed = 45f;
         public float nextTextDelay = 0.5f;
         public Transform moveTo;
+
+        [Tooltip("Temporarily overrides the actor's GridMovement speed for this movement step.")]
+        public bool overrideMoveSpeed;
+
+        [Min(0.01f)]
+        public float moveSpeedOverride = 10f;
         public string choiceA = "A";
         public string choiceB = "B";
     }
@@ -75,7 +81,9 @@ public class CutsceneEvent : MonoBehaviour
             sceneType = CutsceneStep.SceneType.ShowText,
             requireInput = true,
             textSpeed = 45f,
-            nextTextDelay = 0.5f
+            nextTextDelay = 0.5f,
+            overrideMoveSpeed = false,
+            moveSpeedOverride = 10f
         };
 
         steps.Add(step);

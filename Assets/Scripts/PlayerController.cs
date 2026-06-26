@@ -4,7 +4,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
-    [SerializeField] public float moveSpeed = 10f;
+    [SerializeField, Min(0.01f)] public float initialMoveSpeedOverride = 8f; // Movement speed is controlled by GridMovement.cs ; this overrides that value
     [SerializeField] private Transform locationPointer;
     [SerializeField] private float inputDeadZone = 0.1f;
 
@@ -39,7 +39,7 @@ public class PlayerController : MonoBehaviour
     {
         gridMovement = GetComponent<GridMovement>();
 
-        gridMovement.MoveSpeed = moveSpeed;
+        gridMovement.MoveSpeed = initialMoveSpeedOverride;
         gridMovement.BlockingLayers = wallLayer;
     }
 
@@ -348,7 +348,7 @@ public class PlayerController : MonoBehaviour
     #if UNITY_EDITOR
     private void OnValidate()
     {
-        moveSpeed = Mathf.Max(0.01f, moveSpeed);
+        initialMoveSpeedOverride = Mathf.Max(0.01f, initialMoveSpeedOverride);
         inputDeadZone = Mathf.Clamp01(inputDeadZone);
         interactionRadius =
         Mathf.Max(0.01f, interactionRadius);
