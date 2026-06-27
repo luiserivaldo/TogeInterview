@@ -103,7 +103,6 @@ public class GameManager : MonoBehaviour
             Debug.Log("Not enough gold to use the fountain.");
         }
 
-        player.GetComponent<PlayerController>().BumpBack();
     }
 
     private void HandleSign(InteractableObject sign)

@@ -307,7 +307,7 @@ public class PlayerController : MonoBehaviour
         }
 
         InteractionCandidate candidate = nearbyCandidates[index];
-        interactionHandledForCurrentStep = true;
+        inputCooldown = inputCooldownDuration;
         ExitSelectionMode(false);
         RefreshNearbyInteractables(forceClear: true);
         UIManager.Instance.HideMessage();
@@ -491,49 +491,15 @@ public class PlayerController : MonoBehaviour
             monsterLayer
         );
 
-        if (monsterHit != null && monsterHit.TryGetComponent(out MonsterClass monster))
-        {
-            interactionHandledForCurrentStep = true;
-
-            Debug.Log("Hit a monster.");
-
-            BattleManager.Instance.StartBattle(playerClass, monster);
-            return;
-        }
-
-        Collider2D shopHit = Physics2D.OverlapCircle(
-            transform.position,
-            interactionRadius,
-            shopLayer
-        );
-
-        if (shopHit != null && shopHit.TryGetComponent(out ShopClass shop))
-        {
-            interactionHandledForCurrentStep = true;
-
-            Debug.Log("Hit a shop.");
-
-            shop.TryInteract(playerClass);
-            BumpBack();
-            return;
-        }
-
-        Collider2D interactableHit = Physics2D.OverlapCircle(
-            transform.position,
-            interactionRadius,
-            interactableLayer
-        );
-
-        if (interactableHit == null || !interactableHit.TryGetComponent(out InteractableObject interactable))
+        if (monsterHit == null || !monsterHit.TryGetComponent(out MonsterClass monster))
         {
             return;
         }
 
         interactionHandledForCurrentStep = true;
 
-        Debug.Log("Hit an interactable object.");
-        interactable.TryInteract(playerClass);
-        BumpBack();
+        Debug.Log("Hit a monster.");
+        BattleManager.Instance.StartBattle(playerClass, monster);
     }
 
     private void UpdateInputCooldown()
