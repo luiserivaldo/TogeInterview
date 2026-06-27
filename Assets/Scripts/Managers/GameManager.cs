@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
@@ -66,15 +67,15 @@ public class GameManager : MonoBehaviour
         switch (obj.objectType)
         {
             case InteractableObject.InteractableType.Fountain:
-                HandleFountain(player);
+                PromptFountainConfirmation(obj, player);
                 break;
 
             case InteractableObject.InteractableType.ShopAtk:
-                HandleShop(player, ShopManager.ShopType.ATK);
+                PromptShopConfirmation(obj, player, ShopManager.ShopType.ATK);
                 break;
 
             case InteractableObject.InteractableType.ShopDef:
-                HandleShop(player, ShopManager.ShopType.DEF);
+                PromptShopConfirmation(obj, player, ShopManager.ShopType.DEF);
                 break;
 
             case InteractableObject.InteractableType.Sign:
@@ -91,7 +92,93 @@ public class GameManager : MonoBehaviour
             : fountainCosts[fountainCosts.Count - 1];
     }
 
-    private void HandleFountain(PlayerClass player)
+
+    private void PromptFountainConfirmation(InteractableObject obj, PlayerClass player)
+    {
+        if (!TryShowBinaryBoardChoice(obj, "Use fountain?", () =>
+            {
+                bool success = HandleFountain(player);
+                if (!success)
+                {
+                    ShowInteractionFeedback($"You need {GetCurrentFountainCost()} GP to use the fountain.");
+                }
+            }))
+        {
+            HandleFountain(player);
+        }
+    }
+
+    private void PromptShopConfirmation(InteractableObject obj, PlayerClass player, ShopManager.ShopType type)
+    {
+        int currentCost = ShopManager.Instance != null ? ShopManager.Instance.GetCurrentCost(type) : 0;
+        string fallbackPrompt = type == ShopManager.ShopType.ATK
+            ? $"Buy +1 ATK for {currentCost} GP?"
+            : $"Buy +5 DEF for {currentCost} GP?";
+
+        if (!TryShowBinaryBoardChoice(obj, fallbackPrompt, () =>
+            {
+                bool success = HandleShop(player, type);
+                if (!success)
+                {
+                    ShowInteractionFeedback($"You need {currentCost} GP for that upgrade.");
+                }
+            }))
+        {
+            HandleShop(player, type);
+        }
+    }
+
+    private bool TryShowBinaryBoardChoice(InteractableObject obj, string fallbackPrompt, Action confirmedAction)
+    {
+        if (UIManager.Instance == null)
+        {
+            return false;
+        }
+
+        string prompt = obj != null ? obj.GetInteractionMessage() : string.Empty;
+        if (string.IsNullOrWhiteSpace(prompt))
+        {
+            prompt = fallbackPrompt;
+        }
+        else
+        {
+            prompt += "\n\nConfirm?";
+        }
+
+        SetGameplayLocked(true);
+        UIManager.Instance.ShowBoardChoice(
+            prompt,
+            () => ResolveBinaryBoardChoice(confirmedAction),
+            CancelBinaryBoardChoice,
+            "Yes",
+            "No");
+        return true;
+    }
+
+    private void ResolveBinaryBoardChoice(Action confirmedAction)
+    {
+        CancelBinaryBoardChoice();
+        confirmedAction?.Invoke();
+        UIManager.Instance?.UpdateUI();
+    }
+
+    private void CancelBinaryBoardChoice()
+    {
+        UIManager.Instance?.HideBoardUI();
+        SetGameplayLocked(false);
+    }
+
+    private void ShowInteractionFeedback(string message)
+    {
+        if (string.IsNullOrWhiteSpace(message) || DialogueManager.Instance == null)
+        {
+            return;
+        }
+
+        DialogueManager.Instance.StartMessage(message, animateText: false);
+    }
+
+    private bool HandleFountain(PlayerClass player)
     {
         if (player == null)
         {
@@ -101,7 +188,7 @@ public class GameManager : MonoBehaviour
 
         if (player == null)
         {
-            return;
+            return false;
         }
 
         int currentCost = GetCurrentFountainCost();
@@ -113,21 +200,21 @@ public class GameManager : MonoBehaviour
             fountainUseCount++;
             PlaySFX("fountain");
             Debug.Log($"Fountain used. Cost: {currentCost}. Next use count: {fountainUseCount}");
+            return true;
         }
-        else
-        {
-            Debug.Log("Not enough gold to use the fountain.");
-        }
+
+        Debug.Log("Not enough gold to use the fountain.");
+        return false;
     }
 
-    private void HandleShop(PlayerClass player, ShopManager.ShopType type)
+    private bool HandleShop(PlayerClass player, ShopManager.ShopType type)
     {
         if (player == null || ShopManager.Instance == null)
         {
-            return;
+            return false;
         }
 
-        ShopManager.Instance.TryPurchase(player, type);
+        return ShopManager.Instance.TryPurchase(player, type);
     }
 
     private void HandleSign(InteractableObject sign)

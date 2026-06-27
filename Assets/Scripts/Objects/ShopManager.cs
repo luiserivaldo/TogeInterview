@@ -21,13 +21,13 @@ public class ShopManager : MonoBehaviour
             Destroy(gameObject);
     }
 
-    public void TryPurchase(PlayerClass player, ShopType type)
+    public bool TryPurchase(PlayerClass player, ShopType type)
     {
         int cost = GetCurrentCost(type);
         if (player.money < cost)
         {
             Debug.Log($"Not enough gold! Needed: {cost}, Have: {player.money}");
-            return;
+            return false;
         }
 
         player.money -= cost;
@@ -47,6 +47,8 @@ public class ShopManager : MonoBehaviour
             Debug.Log("Purchased DEF upgrade!");
             PlayUpgradeSFX();
         }
+
+        return true;
     }
 
     public int GetCurrentCost(ShopType type)
