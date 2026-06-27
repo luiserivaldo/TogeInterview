@@ -1,0 +1,157 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1aeae7e0a194d1bb23f3a3434107dd0, type: 3}
+  m_Name: SampleTutorialDialogue
+  m_EditorClassIdentifier: 
+  commands:
+  - commandType: 0
+    label: start
+    text: Welcome to the tutorial.
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 0
+    label: 
+    text: Use WASD or the arrow keys to move through the overworld.
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 1
+    label: 
+    text: 
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options:
+    - optionKey: monsters
+      optionLabel: Tell me about monsters
+      targetLabel: 
+    - optionKey: shops
+      optionLabel: Tell me about shops
+      targetLabel: 
+  - commandType: 4
+    label: 
+    text: 
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options:
+    - optionKey: monsters
+      optionLabel: 
+      targetLabel: monster_branch
+    - optionKey: shops
+      optionLabel: 
+      targetLabel: shop_branch
+  - commandType: 2
+    label: monster_branch
+    text: 
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 5
+    label: 
+    text: 
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: combat
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 0
+    label: 
+    text: Bumping into a monster starts battle immediately, so plan your path carefully.
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 3
+    label: 
+    text: 
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: finish
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 2
+    label: shop_branch
+    text: 
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 5
+    label: 
+    text: 
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: upgrade
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 0
+    label: 
+    text: Shops spend your GP on upgrades, so keep checking signs to learn what each place does.
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 2
+    label: finish
+    text: 
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []
+  - commandType: 0
+    label: 
+    text: That's the end of the sample tutorial. You can duplicate this asset and edit the commands list for your own flows.
+    animateText: 1
+    image: {fileID: 0}
+    sfxKey: 
+    targetLabel: 
+    particlePrefab: {fileID: 0}
+    waitForParticleToFinish: 0
+    options: []

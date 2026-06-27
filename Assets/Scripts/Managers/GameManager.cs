@@ -5,6 +5,8 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
+    public static bool IsGameplayLocked { get; private set; }
+
     private AudioManager audioManager;
     private int fountainUseCount = 0;
     public List<int> fountainCosts = new List<int> { 5, 10, 15, 20, 25, 30 };
@@ -56,6 +58,11 @@ public class GameManager : MonoBehaviour
 
     public void InteractWithObject(InteractableObject obj)
     {
+        if (IsGameplayLocked || obj == null)
+        {
+            return;
+        }
+
         switch (obj.objectType)
         {
             case InteractableObject.InteractableType.Fountain:
@@ -124,6 +131,11 @@ public class GameManager : MonoBehaviour
     public void ReloadScene()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public static void SetGameplayLocked(bool locked)
+    {
+        IsGameplayLocked = locked;
     }
 
     private void PlaySFX(string key)

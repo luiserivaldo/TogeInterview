@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -35,9 +36,18 @@ public class BattleManager : MonoBehaviour
     private Vector3 playerStartScale;
     private Vector3 monsterStartScale;
     private int playerBattleMaxHp;
+    private bool suppressOpeningBattleLog;
+    private bool openingActionsDeferred;
 
     private readonly List<SpriteRenderer> hiddenCreatureRenderers = new();
     private readonly List<SpriteSortingState> activeBattleSpriteStates = new();
+
+    public enum BattleResult
+    {
+        Victory,
+        RanAway,
+        Defeat,
+    }
 
     private struct SpriteSortingState
     {
@@ -52,7 +62,7 @@ public class BattleManager : MonoBehaviour
         {
             if (instance == null)
             {
-                instance = Object.FindFirstObjectByType<BattleManager>();
+                instance = UnityEngine.Object.FindFirstObjectByType<BattleManager>();
 
                 if (instance == null)
                 {
@@ -66,6 +76,34 @@ public class BattleManager : MonoBehaviour
     }
 
     public bool IsBattleActive => battleActive;
+    public event Action<BattleResult, MonsterClass> BattleEnded;
+
+    public void SetOpeningTutorialMode(bool enabled)
+    {
+        suppressOpeningBattleLog = enabled;
+
+        if (!enabled)
+        {
+            openingActionsDeferred = false;
+        }
+    }
+
+    public void CompleteOpeningTutorial()
+    {
+        suppressOpeningBattleLog = false;
+
+        if (!battleActive || !openingActionsDeferred || UIManager.Instance == null || activeMonster == null)
+        {
+            openingActionsDeferred = false;
+            return;
+        }
+
+        UIManager.Instance.SetCombatLog($"A <color=red>{activeMonster.DisplayName}</color> has appeared!");
+        UIManager.Instance.AppendCombatLog($"<color=green>{HeroDisplayName}</color> moves first.");
+        UIManager.Instance.SetBattleButtonsInteractable(true);
+        UIManager.Instance.SelectBattleDefaultAction();
+        openingActionsDeferred = false;
+    }
 
     private void Awake()
     {
@@ -82,7 +120,7 @@ public class BattleManager : MonoBehaviour
 
     public void StartBattle(PlayerClass player, MonsterClass monster)
     {
-        if (battleActive || transitionRunning || player == null || monster == null)
+        if (GameManager.IsGameplayLocked || battleActive || transitionRunning || player == null || monster == null)
         {
             return;
         }
@@ -143,7 +181,7 @@ public class BattleManager : MonoBehaviour
             return;
         }
 
-        StartCoroutine(ExitBattleRoutine("You ran away.", false, false));
+        StartCoroutine(ExitBattleRoutine("You ran away.", false, false, BattleResult.RanAway));
     }
 
     private enum BattleAction
@@ -173,10 +211,19 @@ public class BattleManager : MonoBehaviour
         SetOverworldCreatureSpritesVisible(false);
         UIManager.Instance.ShowBattleUI();
         UIManager.Instance.BindBattle(activePlayer, activeMonster, true, playerBattleMaxHp);
-        UIManager.Instance.SetCombatLog($"A <color=red>{activeMonster.DisplayName}</color> has appeared!");
-        UIManager.Instance.AppendCombatLog($"<color=green>{HeroDisplayName}</color> moves first.");
-        UIManager.Instance.SetBattleButtonsInteractable(true);
-        UIManager.Instance.SelectBattleDefaultAction();
+
+        if (suppressOpeningBattleLog)
+        {
+            openingActionsDeferred = true;
+            UIManager.Instance.SetCombatLog(string.Empty);
+        }
+        else
+        {
+            UIManager.Instance.SetCombatLog($"A <color=red>{activeMonster.DisplayName}</color> has appeared!");
+            UIManager.Instance.AppendCombatLog($"<color=green>{HeroDisplayName}</color> moves first.");
+            UIManager.Instance.SetBattleButtonsInteractable(true);
+            UIManager.Instance.SelectBattleDefaultAction();
+        }
 
         transitionRunning = false;
     }
@@ -231,13 +278,13 @@ public class BattleManager : MonoBehaviour
 
         yield return new WaitForSeconds(conclusionPauseDuration);
 
-        GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
+        GameManager gameManager = UnityEngine.Object.FindFirstObjectByType<GameManager>();
         if (gameManager != null)
         {
             gameManager.MonsterKilled(activeMonster);
         }
 
-        yield return ExitBattleRoutine(string.Empty, true, true);
+        yield return ExitBattleRoutine(string.Empty, true, true, BattleResult.Victory);
     }
 
     private IEnumerator HandlePlayerDefeatRoutine()
@@ -255,18 +302,21 @@ public class BattleManager : MonoBehaviour
         battleActive = false;
         transitionRunning = false;
         hiddenCreatureRenderers.Clear();
+        MonsterClass defeatedMonster = activeMonster;
         activePlayer = null;
         activeMonster = null;
         activePlayerController = null;
 
-        GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
+        BattleEnded?.Invoke(BattleResult.Defeat, defeatedMonster);
+
+        GameManager gameManager = UnityEngine.Object.FindFirstObjectByType<GameManager>();
         if (gameManager != null)
         {
             gameManager.GameOver();
         }
     }
 
-    private IEnumerator ExitBattleRoutine(string logMessage, bool deactivateMonster, bool grantPlayerTurnOnExit)
+    private IEnumerator ExitBattleRoutine(string logMessage, bool deactivateMonster, bool grantPlayerTurnOnExit, BattleResult result)
     {
         transitionRunning = true;
         UIManager.Instance.SetBattleButtonsInteractable(false);
@@ -304,17 +354,22 @@ public class BattleManager : MonoBehaviour
             activePlayerController.enabled = true;
         }
 
+        MonsterClass completedMonster = activeMonster;
         activePlayer = null;
         activeMonster = null;
         activePlayerController = null;
         hiddenCreatureRenderers.Clear();
         battleActive = false;
         transitionRunning = false;
+        openingActionsDeferred = false;
+        suppressOpeningBattleLog = false;
 
         if (grantPlayerTurnOnExit)
         {
             UIManager.Instance.UpdateUI();
         }
+
+        BattleEnded?.Invoke(result, completedMonster);
     }
 
     private IEnumerator FadeCombatantRoutine(GameObject combatant, float fromAlpha, float toAlpha, float duration)
@@ -375,7 +430,7 @@ public class BattleManager : MonoBehaviour
         {
             hiddenCreatureRenderers.Clear();
 
-            MonsterClass[] monsters = Object.FindObjectsByType<MonsterClass>(FindObjectsSortMode.None);
+            MonsterClass[] monsters = UnityEngine.Object.FindObjectsByType<MonsterClass>(FindObjectsSortMode.None);
             foreach (MonsterClass monster in monsters)
             {
                 if (monster == null || monster == activeMonster)
@@ -482,7 +537,7 @@ public class BattleManager : MonoBehaviour
 
     private int GetTopSortingLayerId()
     {
-        Renderer[] renderers = Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None);
+        Renderer[] renderers = UnityEngine.Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None);
         int bestLayerId = 0;
         int bestLayerValue = int.MinValue;
 
@@ -506,7 +561,7 @@ public class BattleManager : MonoBehaviour
 
     private int GetTopSortingOrderForLayer(int sortingLayerId)
     {
-        Renderer[] renderers = Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None);
+        Renderer[] renderers = UnityEngine.Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None);
         int bestSortingOrder = 0;
 
         foreach (Renderer renderer in renderers)

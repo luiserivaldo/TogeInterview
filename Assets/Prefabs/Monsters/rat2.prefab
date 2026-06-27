@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7014266466876864956}
   - component: {fileID: 4615550865702096367}
   - component: {fileID: 4364438755126983451}
+  - component: {fileID: 5508582520612088826}
   m_Layer: 6
   m_Name: rat2
   m_TagString: Untagged
@@ -82,6 +83,7 @@ BoxCollider2D:
   m_EdgeRadius: 0
 --- !u!212 &4615550865702096367
 SpriteRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -100,6 +102,8 @@ SpriteRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -121,9 +125,11 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_Sprite: {fileID: 4062854969985130524, guid: f42b4e62e1ce36e45829639e737685af, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -133,7 +139,6 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!114 &4364438755126983451
 MonoBehaviour:
@@ -147,7 +152,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fd67d2ffb1a69d43a8d230b41f4e35e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  displayName: 
+  statsData: {fileID: 0}
   attack: 2
+  maxHp: 5
+  currentHp: 0
   maxDef: 5
   currentDef: 1
   money: 6
+--- !u!114 &5508582520612088826
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4525354122991174276}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 657da31255a9a8eb5b8ba577911e3fe6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GridMovement
+  gridSize: 1
+  moveSpeed: 5
+  blockingLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  collisionRadius: 0.2
+  preserveInitialGridOffset: 1

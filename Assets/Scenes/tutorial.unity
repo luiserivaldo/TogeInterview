@@ -1499,11 +1499,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 49504006552336536, guid: dc223639c86a6184fb7006f62300677e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -8.5
+      value: -5.5
       objectReference: {fileID: 0}
     - target: {fileID: 49504006552336536, guid: dc223639c86a6184fb7006f62300677e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 5
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 49504006552336536, guid: dc223639c86a6184fb7006f62300677e, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1637,7 +1637,7 @@ GameObject:
   - component: {fileID: 219087848}
   - component: {fileID: 219087849}
   m_Layer: 0
-  m_Name: CutsceneMovePointer (step5)
+  m_Name: CutsceneMovePointer (step1)
   m_TagString: Untagged
   m_Icon: {fileID: 3306451490063965843, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
@@ -1652,11 +1652,11 @@ Transform:
   m_GameObject: {fileID: 219087847}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -369.8037, y: -248.83673, z: 0}
+  m_LocalPosition: {x: -374.8037, y: -248.85674, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1535455985}
+  m_Father: {fileID: 900100003}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &219087849
 MonoBehaviour:
@@ -59410,6 +59410,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CutsceneManager
   cutsceneEvents:
   - {fileID: 1535455984}
+  - {fileID: 900100002}
+  - {fileID: 900100012}
+  - {fileID: 900100022}
   lockGameplayDuringSequence: 1
 --- !u!4 &362513571
 Transform:
@@ -59425,6 +59428,9 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1535455985}
+  - {fileID: 900100003}
+  - {fileID: 900100013}
+  - {fileID: 900100023}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &380848945
@@ -62136,6 +62142,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 792463062}
   m_CullTransparentMesh: 1
+--- !u!1 &808708274 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4525354122991174276, guid: 4c7852fc73430404090e0c67c243b783, type: 3}
+  m_PrefabInstance: {fileID: 484049961}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &822363516
 GameObject:
   m_ObjectHideFlags: 0
@@ -62551,6 +62562,269 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 49504006552336536, guid: 7a578c9a442220147ad75df4559e94c7, type: 3}
   m_PrefabInstance: {fileID: 1116293732}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &900100001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 900100003}
+  - component: {fileID: 900100002}
+  m_Layer: 0
+  m_Name: Tutorial-monsterApproachEvent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &900100002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900100001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08f26c9ca3074cbdbb69147eef28bf39, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CutsceneEvent
+  eventId: Event2
+  actor: {fileID: 808708274}
+  triggerType: 3
+  requiredTriggerTag: Player
+  steps:
+  - sceneType: 1
+    dialogueText: 
+    requireInput: 1
+    textSpeed: 45
+    nextTextDelay: 0.5
+    moveTo: {fileID: 219087848}
+    overrideMoveSpeed: 1
+    moveSpeedOverride: 5.5
+    choiceA: A
+    choiceB: B
+--- !u!4 &900100003
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900100001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 219087848}
+  m_Father: {fileID: 362513571}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &900100011
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 900100013}
+  - component: {fileID: 900100012}
+  m_Layer: 0
+  m_Name: Tutorial-combatHintEvent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &900100012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900100011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08f26c9ca3074cbdbb69147eef28bf39, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CutsceneEvent
+  eventId: Event3
+  actor: {fileID: 1192593343}
+  triggerType: 3
+  requiredTriggerTag: Player
+  steps:
+  - sceneType: 0
+    dialogueText: That monster is coming in.
+    requireInput: 1
+    textSpeed: 45
+    nextTextDelay: 0.5
+    moveTo: {fileID: 0}
+    overrideMoveSpeed: 0
+    moveSpeedOverride: 10
+    choiceA: A
+    choiceB: B
+  - sceneType: 0
+    dialogueText: Bumping into a monster starts combat right away. Step into it when
+      you're ready.
+    requireInput: 1
+    textSpeed: 45
+    nextTextDelay: 0.5
+    moveTo: {fileID: 0}
+    overrideMoveSpeed: 0
+    moveSpeedOverride: 10
+    choiceA: A
+    choiceB: B
+--- !u!4 &900100013
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900100011}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 362513571}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &900100021
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 900100023}
+  - component: {fileID: 900100022}
+  m_Layer: 0
+  m_Name: Tutorial-outroEvent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &900100022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900100021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08f26c9ca3074cbdbb69147eef28bf39, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CutsceneEvent
+  eventId: Event4
+  actor: {fileID: 1192593343}
+  triggerType: 3
+  requiredTriggerTag: Player
+  steps:
+  - sceneType: 0
+    dialogueText: Nice work. You're ready for the road ahead.
+    requireInput: 1
+    textSpeed: 45
+    nextTextDelay: 0.5
+    moveTo: {fileID: 0}
+    overrideMoveSpeed: 0
+    moveSpeedOverride: 10
+    choiceA: A
+    choiceB: B
+  - sceneType: 0
+    dialogueText: I'll head back to my post. The rest of the monsters are back, so
+      explore carefully.
+    requireInput: 1
+    textSpeed: 45
+    nextTextDelay: 0.5
+    moveTo: {fileID: 0}
+    overrideMoveSpeed: 0
+    moveSpeedOverride: 10
+    choiceA: A
+    choiceB: B
+  - sceneType: 1
+    dialogueText: 
+    requireInput: 1
+    textSpeed: 45
+    nextTextDelay: 0.5
+    moveTo: {fileID: 1815722017}
+    overrideMoveSpeed: 1
+    moveSpeedOverride: 6
+    choiceA: A
+    choiceB: B
+--- !u!4 &900100023
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900100021}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1815722017}
+  m_Father: {fileID: 362513571}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &900100031
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 900100032}
+  - component: {fileID: 900100033}
+  m_Layer: 0
+  m_Name: TutorialManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &900100032
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900100031}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &900100033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900100031}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6e68ef5114b4926a959017f0163f4d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TutorialManager
+  introEventId: Event1
+  monsterApproachEventId: Event2
+  combatHintEventId: Event3
+  outroEventId: Event4
+  tutorialMonsterName: rat (1)
+  highlightColor: {r: 1, g: 0.86, b: 0.2, a: 1}
+  highlightDuration: 1.4
+  highlightPulseSpeed: 7
 --- !u!1 &929442888
 GameObject:
   m_ObjectHideFlags: 0
@@ -62913,7 +63187,7 @@ Transform:
   m_GameObject: {fileID: 978239072}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -374.8037, y: -244.83673, z: 0}
+  m_LocalPosition: {x: -375.8037, y: -246.85674, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -64752,7 +65026,7 @@ Transform:
   m_GameObject: {fileID: 1132673225}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -376.8037, y: -247.83673, z: 0}
+  m_LocalPosition: {x: -376.8037, y: -247.85674, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -65154,6 +65428,10 @@ PrefabInstance:
       value: sign
       objectReference: {fileID: 0}
     - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
+      propertyPath: 
+      value: 
+      objectReference: {fileID: 11400000, guid: 1e5560ce5e6a4066b9694eab1cc21f1c, type: 2}
+    - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
       propertyPath: signType
       value: 1
       objectReference: {fileID: 0}
@@ -65161,9 +65439,6 @@ PrefabInstance:
       propertyPath: signMessage
       value: Respawn all monsters (5GP)
       objectReference: {fileID: 0}
-    - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
-      value: 
-      objectReference: {fileID: 11400000, guid: 1e5560ce5e6a4066b9694eab1cc21f1c, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -65419,7 +65694,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 49504006552336536, guid: dc223639c86a6184fb7006f62300677e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1
+      value: -2
       objectReference: {fileID: 0}
     - target: {fileID: 49504006552336536, guid: dc223639c86a6184fb7006f62300677e, type: 3}
       propertyPath: m_LocalPosition.z
@@ -67922,7 +68197,7 @@ GameObject:
   - component: {fileID: 1535455985}
   - component: {fileID: 1535455984}
   m_Layer: 0
-  m_Name: Event1
+  m_Name: Tutorial-introEvent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -67946,17 +68221,17 @@ MonoBehaviour:
   requiredTriggerTag: Player
   steps:
   - sceneType: 1
-    dialogueText: Hello there!
+    dialogueText: 
     requireInput: 1
     textSpeed: 45
     nextTextDelay: 0.5
     moveTo: {fileID: 1132673226}
-    overrideMoveSpeed: 0
-    moveSpeedOverride: 5
+    overrideMoveSpeed: 1
+    moveSpeedOverride: 6
     choiceA: A
     choiceB: B
   - sceneType: 0
-    dialogueText: Hello there!
+    dialogueText: Hey, you look new around here.
     requireInput: 1
     textSpeed: 45
     nextTextDelay: 0.5
@@ -67966,47 +68241,7 @@ MonoBehaviour:
     choiceA: A
     choiceB: B
   - sceneType: 0
-    dialogueText: It's time to d-d-d-duel!
-    requireInput: 1
-    textSpeed: 45
-    nextTextDelay: 0.5
-    moveTo: {fileID: 0}
-    overrideMoveSpeed: 0
-    moveSpeedOverride: 10
-    choiceA: A
-    choiceB: B
-  - sceneType: 1
-    dialogueText: 
-    requireInput: 1
-    textSpeed: 45
-    nextTextDelay: 0.5
-    moveTo: {fileID: 1815722017}
-    overrideMoveSpeed: 0
-    moveSpeedOverride: 10
-    choiceA: A
-    choiceB: B
-  - sceneType: 1
-    dialogueText: 
-    requireInput: 1
-    textSpeed: 45
-    nextTextDelay: 0.5
-    moveTo: {fileID: 219087848}
-    overrideMoveSpeed: 0
-    moveSpeedOverride: 10
-    choiceA: A
-    choiceB: B
-  - sceneType: 1
-    dialogueText: 
-    requireInput: 1
-    textSpeed: 45
-    nextTextDelay: 0.5
-    moveTo: {fileID: 978239073}
-    overrideMoveSpeed: 0
-    moveSpeedOverride: 10
-    choiceA: A
-    choiceB: B
-  - sceneType: 0
-    dialogueText: 
+    dialogueText: Let me show you how combat works.
     requireInput: 1
     textSpeed: 45
     nextTextDelay: 0.5
@@ -68029,8 +68264,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1132673226}
-  - {fileID: 1815722017}
-  - {fileID: 219087848}
   - {fileID: 978239073}
   m_Father: {fileID: 362513571}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -75519,7 +75752,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 49504006552336536, guid: dc223639c86a6184fb7006f62300677e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 3
+      value: 3.5
       objectReference: {fileID: 0}
     - target: {fileID: 49504006552336536, guid: dc223639c86a6184fb7006f62300677e, type: 3}
       propertyPath: m_LocalPosition.y
@@ -77561,7 +77794,7 @@ GameObject:
   - component: {fileID: 1815722017}
   - component: {fileID: 1815722018}
   m_Layer: 0
-  m_Name: CutsceneMovePointer (step4)
+  m_Name: CutsceneMovePointer (step3)
   m_TagString: Untagged
   m_Icon: {fileID: 3306451490063965843, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
@@ -77576,11 +77809,11 @@ Transform:
   m_GameObject: {fileID: 1815722016}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -376.8037, y: -250.83673, z: 0}
+  m_LocalPosition: {x: -374.8037, y: -244.85674, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1535455985}
+  m_Father: {fileID: 900100023}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1815722018
 MonoBehaviour:
@@ -79474,6 +79707,7 @@ SceneRoots:
   - {fileID: 2076790270}
   - {fileID: 528160923}
   - {fileID: 140791367}
+  - {fileID: 900100032}
   - {fileID: 146110670}
   - {fileID: 362513571}
   - {fileID: 826793404}
