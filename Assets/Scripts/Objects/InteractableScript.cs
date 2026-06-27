@@ -24,7 +24,7 @@ public class InteractableObject : MonoBehaviour
 
     [SerializeField] private SpriteRenderer indicatorRenderer;
     [SerializeField] private Sprite dialogueImage;
-    [SerializeField] protected bool disableDuringOpeningTutorial;
+    [SerializeField] protected bool allowDuringOpeningTutorial;
 
     public SignType signType = SignType.None;
     public InteractableType objectType;
@@ -34,10 +34,6 @@ public class InteractableObject : MonoBehaviour
     public bool overrideMessage = false;
 
     public SpriteRenderer IndicatorRenderer => indicatorRenderer;
-    public virtual bool CanInteract =>
-        !disableDuringOpeningTutorial ||
-        !TutorialManager.IsOpeningTutorialActive ||
-        signType == SignType.BlacksmithSign;
 
     protected virtual string DefaultInteractionMessage => string.Empty;
 
@@ -45,6 +41,10 @@ public class InteractableObject : MonoBehaviour
     {
         AutoAssignIndicatorRenderer();
     }
+
+    public virtual bool CanInteract =>
+    !TutorialManager.IsOpeningTutorialActive ||
+    allowDuringOpeningTutorial;
 
     public virtual void TryInteract(PlayerClass player)
     {
