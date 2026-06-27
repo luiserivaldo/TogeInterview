@@ -62573,7 +62573,7 @@ GameObject:
   - component: {fileID: 900100003}
   - component: {fileID: 900100002}
   m_Layer: 0
-  m_Name: Event2
+  m_Name: Tutorial-MoveRat
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -62633,7 +62633,7 @@ GameObject:
   - component: {fileID: 900100013}
   - component: {fileID: 900100012}
   m_Layer: 0
-  m_Name: Event3
+  m_Name: Tutorial-PreCombat
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -62703,7 +62703,7 @@ GameObject:
   - component: {fileID: 900100023}
   - component: {fileID: 900100022}
   m_Layer: 0
-  m_Name: Event4
+  m_Name: Tutorial-FinishCombat
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -68197,7 +68197,7 @@ GameObject:
   - component: {fileID: 1535455985}
   - component: {fileID: 1535455984}
   m_Layer: 0
-  m_Name: Event1
+  m_Name: Tutorial-BlacksmithApproach
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -77794,7 +77794,7 @@ GameObject:
   - component: {fileID: 1815722017}
   - component: {fileID: 1815722018}
   m_Layer: 0
-  m_Name: CutsceneMovePointer (step4)
+  m_Name: CutsceneMovePointer (step3)
   m_TagString: Untagged
   m_Icon: {fileID: 3306451490063965843, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
