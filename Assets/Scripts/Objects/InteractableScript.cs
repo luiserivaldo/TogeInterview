@@ -2,11 +2,15 @@ using UnityEngine;
 
 public class InteractableObject : MonoBehaviour
 {
+    private const string TutorialBlacksmithPrompt = "Go ahead, approach the monster!";
+
     public enum InteractableType
     {
         Fountain,
         Sign,
-        NPC
+        NPC,
+        ShopAtk,
+        ShopDef,
     }
 
     public enum SignType
@@ -19,6 +23,8 @@ public class InteractableObject : MonoBehaviour
     }
 
     [SerializeField] private SpriteRenderer indicatorRenderer;
+    [SerializeField] private Sprite dialogueImage;
+    [SerializeField] private bool disableDuringOpeningTutorial;
 
     public SignType signType = SignType.None;
     public InteractableType objectType;
@@ -28,6 +34,12 @@ public class InteractableObject : MonoBehaviour
     public bool overrideMessage = false;
 
     public SpriteRenderer IndicatorRenderer => indicatorRenderer;
+    public bool CanInteract =>
+        !disableDuringOpeningTutorial ||
+        !TutorialManager.IsOpeningTutorialActive ||
+        signType == SignType.BlacksmithSign;
+
+    protected virtual string DefaultInteractionMessage => string.Empty;
 
     private void Awake()
     {
@@ -36,28 +48,72 @@ public class InteractableObject : MonoBehaviour
 
     public virtual void TryInteract(PlayerClass player)
     {
+        if (!CanInteract)
+        {
+            return;
+        }
+
+        if (TryHandleTutorialBlacksmithOverride())
+        {
+            return;
+        }
+
         GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
         if (gameManager != null)
         {
-            gameManager.InteractWithObject(this);
+            gameManager.InteractWithObject(this, player);
         }
 
-        if (GameManager.IsGameplayLocked || UIManager.Instance == null)
+        if (GameManager.IsGameplayLocked)
         {
             return;
         }
 
-        if (objectType != InteractableType.Sign)
+        string message = GetInteractionMessage();
+        if (string.IsNullOrWhiteSpace(message))
         {
             return;
         }
 
-        UIManager.Instance.ShowMessage(GetSignMessage());
+        UIManager.Instance?.HideMessage();
+        UIManager.Instance?.HideBountyBoard();
+        DialogueManager.Instance.StartMessage(message, dialogueImage, animateText: false);
+    }
 
-        if (signType == SignType.BountyBoardSign)
+    public virtual string GetInteractionMessage()
+    {
+        string baseMessage = DefaultInteractionMessage;
+
+        switch (objectType)
         {
-            UIManager.Instance.ShowBountyBoard();
+            case InteractableType.Fountain:
+                baseMessage = $"Respawns all monsters. ({GetFountainCost()} GP)";
+                break;
+
+            case InteractableType.Sign:
+                baseMessage = GetSignMessage();
+                break;
+
+            case InteractableType.ShopAtk:
+                baseMessage = $"Sharpen your weapon? +1 ATK for {GetShopCost(ShopManager.ShopType.ATK)} GP.";
+                break;
+
+            case InteractableType.ShopDef:
+                baseMessage = $"Reinforce your armor? +5 DEF for {GetShopCost(ShopManager.ShopType.DEF)} GP.";
+                break;
         }
+
+        if (overrideMessage && !string.IsNullOrWhiteSpace(additionalMessage))
+        {
+            return additionalMessage;
+        }
+
+        if (!string.IsNullOrWhiteSpace(additionalMessage) && !string.IsNullOrWhiteSpace(baseMessage))
+        {
+            return baseMessage + "\n" + additionalMessage;
+        }
+
+        return string.IsNullOrWhiteSpace(additionalMessage) ? baseMessage : additionalMessage;
     }
 
     public string GetSignMessage()
@@ -67,8 +123,7 @@ public class InteractableObject : MonoBehaviour
         switch (signType)
         {
             case SignType.FountainSign:
-                int fountainCost = GetFountainCost();
-                baseMessage = $"Respawns all monsters. ({fountainCost} GP)";
+                baseMessage = $"Respawns all monsters. ({GetFountainCost()} GP)";
                 break;
 
             case SignType.BlacksmithSign:
@@ -90,34 +145,31 @@ public class InteractableObject : MonoBehaviour
                 break;
         }
 
-        if (overrideMessage && !string.IsNullOrWhiteSpace(additionalMessage))
-        {
-            return additionalMessage;
-        }
-
-        if (!string.IsNullOrWhiteSpace(additionalMessage))
-        {
-            return baseMessage + "\n" + additionalMessage;
-        }
-
         return baseMessage;
+    }
+
+    private bool TryHandleTutorialBlacksmithOverride()
+    {
+        if (signType != SignType.BlacksmithSign || !TutorialManager.IsOpeningTutorialActive)
+        {
+            return false;
+        }
+
+        UIManager.Instance?.HideMessage();
+        UIManager.Instance?.HideBountyBoard();
+        DialogueManager.Instance.StartMessage(TutorialBlacksmithPrompt, dialogueImage, animateText: false);
+        return true;
     }
 
     private int GetFountainCost()
     {
         GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
-
-        if (gameManager == null)
-        {
-            return 0;
-        }
-
-        return gameManager.GetCurrentFountainCost();
+        return gameManager == null ? 0 : gameManager.GetCurrentFountainCost();
     }
 
-    private int GetShopCost(ShopManager.ShopType type)
+    protected int GetShopCost(ShopManager.ShopType type)
     {
-        return ShopManager.Instance.GetCurrentCost(type);
+        return ShopManager.Instance != null ? ShopManager.Instance.GetCurrentCost(type) : 0;
     }
 
     private string GetBountyBoardMessage()

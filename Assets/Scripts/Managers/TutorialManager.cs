@@ -55,7 +55,7 @@ public class TutorialManager : MonoBehaviour
             battleManager.BattleEnded -= HandleBattleEnded;
         }
 
-        IsOpeningTutorialActive = true;
+        IsOpeningTutorialActive = false;
     }
 
     private IEnumerator Start()

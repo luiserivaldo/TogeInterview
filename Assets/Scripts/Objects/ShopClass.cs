@@ -1,52 +1,21 @@
 using UnityEngine;
 
-public class ShopClass : MonoBehaviour
+public class ShopClass : InteractableObject
 {
-    [SerializeField] private SpriteRenderer indicatorRenderer;
-    [SerializeField] private bool disableDuringOpeningTutorial;
+    [SerializeField] private ShopManager.ShopType shopType;
 
-    public ShopManager.ShopType shopType;
+    public ShopManager.ShopType ShopType => shopType;
 
-    public SpriteRenderer IndicatorRenderer => indicatorRenderer;
-
-    private void Awake()
-    {
-        AutoAssignIndicatorRenderer();
-    }
-
-    // Disable interaction during tutorial sequence
-    public bool CanInteract =>
-    !disableDuringOpeningTutorial ||
-    !TutorialManager.IsOpeningTutorialActive;
-
-    public void TryInteract(PlayerClass player)
-    {
-        if (!CanInteract || player == null || ShopManager.Instance == null)
-        {
-            return;
-        }
-
-        ShopManager.Instance.TryPurchase(player, shopType);
-    }
-
-    private void AutoAssignIndicatorRenderer()
-    {
-        if (indicatorRenderer != null)
-        {
-            return;
-        }
-
-        Transform indicator = transform.Find("SelectIcon");
-        if (indicator != null)
-        {
-            indicatorRenderer = indicator.GetComponent<SpriteRenderer>();
-        }
-    }
+    protected override string DefaultInteractionMessage => shopType == ShopManager.ShopType.ATK
+        ? $"Sharpen your weapon? +1 ATK for {GetShopCost(ShopManager.ShopType.ATK)} GP."
+        : $"Reinforce your armor? +5 DEF for {GetShopCost(ShopManager.ShopType.DEF)} GP.";
 
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        AutoAssignIndicatorRenderer();
+        objectType = shopType == ShopManager.ShopType.ATK
+            ? InteractableType.ShopAtk
+            : InteractableType.ShopDef;
     }
 #endif
 }

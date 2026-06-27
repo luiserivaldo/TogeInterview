@@ -1485,6 +1485,11 @@ MonoBehaviour:
   playerMultiTargetIndicatorSprite: {fileID: 2030128313778976242, guid: 197233b199958c17bb474a9ab9e0f0fe, type: 3}
   interactableDiscoverableIndicatorSprite: {fileID: 1259403999637839662, guid: 62aa474fc3a857f69803cb9ff0f2deb6, type: 3}
   interactableSelectedIndicatorSprite: {fileID: 5501462207820167518, guid: ec65dda311caa9f0eaaae47cc9ecc8fd, type: 3}
+  cancelIndicatorSprite: {fileID: -1504733587676658999, guid: ad1858128d6f847b0a832bc5d5114a6e, type: 3}
+  playerMultiTargetIndicatorColor: {r: 1, g: 1, b: 1, a: 1}
+  interactableDiscoverableIndicatorColor: {r: 0.4, g: 0.4, b: 0.4, a: 0.9}
+  interactableSelectedIndicatorColor: {r: 1, g: 1, b: 1, a: 1}
+  cancelIndicatorColor: {r: 1, g: 0.82, b: 0.82, a: 1}
   cutsceneAvatarImage: {fileID: 0}
   cutsceneDialogueText: {fileID: 0}
   yesButton: {fileID: 0}
@@ -79519,6 +79524,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 432442788}
     m_Modifications:
+    - target: {fileID: -2397197698880503310, guid: 1d77c69166d6c4f46a51b4b3e62c7dc4, type: 3}
+      propertyPath: disableDuringOpeningTutorial
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 259204357701508229, guid: 1d77c69166d6c4f46a51b4b3e62c7dc4, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2
@@ -79579,6 +79588,10 @@ PrefabInstance:
     - target: {fileID: 783714828081886206, guid: 2da7965e447cbdb46b7dbcf4bd4ed761, type: 3}
       propertyPath: m_Name
       value: shopDef
+      objectReference: {fileID: 0}
+    - target: {fileID: 8319704609953122219, guid: 2da7965e447cbdb46b7dbcf4bd4ed761, type: 3}
+      propertyPath: disableDuringOpeningTutorial
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9165861200388380512, guid: 2da7965e447cbdb46b7dbcf4bd4ed761, type: 3}
       propertyPath: m_LocalPosition.x

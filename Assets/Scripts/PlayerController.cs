@@ -36,6 +36,7 @@ public class PlayerController : MonoBehaviour
     [Header("Interaction Detection")]
     [SerializeField] private float interactionRadius = 0.2f;
     [SerializeField, Min(0.1f)] private float nearbyInteractableRange = 1.05f;
+    [SerializeField, Min(0.01f)] private float rangeTolerance = 0.1f;
 
     [Header("Bump Back")]
     [SerializeField] private float bumpDuration = 0.2f;
@@ -68,7 +69,7 @@ public class PlayerController : MonoBehaviour
         playerClass = GetComponent<PlayerClass>();
 
         gridMovement.MoveSpeed = initialMoveSpeedOverride;
-        gridMovement.BlockingLayers = wallLayer;
+        gridMovement.BlockingLayers = wallLayer | shopLayer | interactableLayer;
 
         AutoAssignPlayerIndicator();
     }
@@ -238,8 +239,7 @@ public class PlayerController : MonoBehaviour
         else if (!selectionNavigationHeld)
         {
             selectionNavigationHeld = true;
-            int direction = (navigationInput.x > 0f || navigationInput.y < 0f) ? 1 : -1;
-            MoveSelection(direction);
+            MoveSelection(navigationInput);
         }
 
         if (!IsInteractionSubmitPressed())
@@ -271,32 +271,119 @@ public class PlayerController : MonoBehaviour
 
     private void ExitSelectionMode(bool restoreNearbyState)
     {
-        interactionSelectionState = restoreNearbyState
-            ? InteractionSelectionState.MultiCandidateReady
-            : InteractionSelectionState.None;
+        if (!restoreNearbyState)
+        {
+            interactionSelectionState = InteractionSelectionState.None;
+        }
+        else if (nearbyCandidates.Count > 1)
+        {
+            interactionSelectionState = InteractionSelectionState.MultiCandidateReady;
+        }
+        else if (nearbyCandidates.Count == 1)
+        {
+            interactionSelectionState = InteractionSelectionState.SingleCandidate;
+        }
+        else
+        {
+            interactionSelectionState = InteractionSelectionState.None;
+        }
+
         selectedCandidateIndex = -1;
         selectionNavigationHeld = false;
         UpdateIndicatorVisuals();
     }
 
-    private void MoveSelection(int direction)
+    private void MoveSelection(Vector2 direction)
     {
-        int totalOptions = nearbyCandidates.Count + 1;
-        if (totalOptions <= 1)
+        if (nearbyCandidates.Count == 0)
         {
             return;
         }
 
-        if (selectedCandidateIndex < 0)
+        Vector3 anchorPosition = GetSelectionAnchorPosition();
+        int bestIndex = FindBestSelectionTarget(anchorPosition, direction);
+        if (bestIndex < 0)
         {
-            selectedCandidateIndex = 0;
-        }
-        else
-        {
-            selectedCandidateIndex = (selectedCandidateIndex + direction + totalOptions) % totalOptions;
+            return;
         }
 
+        selectedCandidateIndex = bestIndex;
         UpdateIndicatorVisuals();
+    }
+
+    private int FindBestSelectionTarget(Vector3 anchorPosition, Vector2 direction)
+    {
+        int bestObjectIndex = FindBestSelectionObject(anchorPosition, direction);
+        if (bestObjectIndex >= 0)
+        {
+            return bestObjectIndex;
+        }
+
+        return FindBestSelectionCancel(anchorPosition, direction);
+    }
+
+    private int FindBestSelectionObject(Vector3 anchorPosition, Vector2 direction)
+    {
+        Vector2 normalizedDirection = direction.normalized;
+        float bestScore = float.NegativeInfinity;
+        int bestIndex = -1;
+
+        for (int i = 0; i < nearbyCandidates.Count; i++)
+        {
+            Vector3 optionPosition = nearbyCandidates[i].Position;
+            Vector2 offset = new Vector2(
+                optionPosition.x - anchorPosition.x,
+                optionPosition.y - anchorPosition.y
+            );
+
+            if (offset.sqrMagnitude <= 0.0001f)
+            {
+                continue;
+            }
+
+            Vector2 offsetDirection = offset.normalized;
+            float directionalAlignment = Vector2.Dot(normalizedDirection, offsetDirection);
+            if (directionalAlignment <= 0.15f)
+            {
+                continue;
+            }
+
+            float distancePenalty = offset.sqrMagnitude;
+            float lateralPenalty = Mathf.Abs(Vector3.Cross(normalizedDirection, offsetDirection).z);
+            float score = directionalAlignment * 100f - distancePenalty * 10f - lateralPenalty;
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestIndex = i;
+            }
+        }
+
+        return bestIndex;
+    }
+
+    private int FindBestSelectionCancel(Vector3 anchorPosition, Vector2 direction)
+    {
+        Vector2 normalizedDirection = direction.normalized;
+        Vector2 offset = new Vector2(
+            transform.position.x - anchorPosition.x,
+            transform.position.y - anchorPosition.y
+        );
+
+        if (offset.sqrMagnitude <= 0.0001f)
+        {
+            return -1;
+        }
+
+        float directionalAlignment = Vector2.Dot(normalizedDirection, offset.normalized);
+        return directionalAlignment > 0.15f ? nearbyCandidates.Count : -1;
+    }
+
+    private Vector3 GetSelectionAnchorPosition()
+    {
+        return selectedCandidateIndex >= 0 && selectedCandidateIndex < nearbyCandidates.Count
+            ? nearbyCandidates[selectedCandidateIndex].Position
+            : transform.position;
     }
 
     private void InteractWithCandidate(int index)
@@ -360,63 +447,44 @@ public class PlayerController : MonoBehaviour
     {
         nearbyCandidates.Clear();
 
-        int combinedMask = interactableLayer.value | shopLayer.value;
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, nearbyInteractableRange, combinedMask);
-        if (hits == null || hits.Length == 0)
+        InteractableObject[] interactables = FindObjectsByType<InteractableObject>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        foreach (InteractableObject interactable in interactables)
         {
-            return;
-        }
-
-        HashSet<GameObject> seenObjects = new();
-
-        foreach (Collider2D hit in hits)
-        {
-            if (hit == null)
+            if (interactable == null || !interactable.CanInteract || !IsWithinSingleTile(interactable.transform.position))
             {
                 continue;
             }
 
-            GameObject rootObject = hit.gameObject;
-            if (!seenObjects.Add(rootObject))
+            nearbyCandidates.Add(new InteractionCandidate
             {
-                continue;
-            }
-
-            if (rootObject.TryGetComponent(out InteractableObject interactable))
-            {
-                nearbyCandidates.Add(new InteractionCandidate
-                {
-                    RootObject = rootObject,
-                    Indicator = interactable.IndicatorRenderer,
-                    Position = interactable.transform.position,
-                    Interact = interactable.TryInteract,
-                });
-                continue;
-            }
-
-            if (rootObject.TryGetComponent(out ShopClass shop))
-            {
-                if (!shop.CanInteract)
-                {
-                    UIManager.Instance?.ApplyIndicatorState(
-                        shop.IndicatorRenderer,
-                        UIManager.InteractIndicatorState.Hidden
-                    );
-
-                    continue;
-                }
-
-                nearbyCandidates.Add(new InteractionCandidate
-                {
-                    RootObject = rootObject,
-                    Indicator = shop.IndicatorRenderer,
-                    Position = shop.transform.position,
-                    Interact = shop.TryInteract,
-                });
-            }
+                RootObject = interactable.gameObject,
+                Indicator = interactable.IndicatorRenderer,
+                Position = interactable.transform.position,
+                Interact = interactable.TryInteract,
+            });
         }
 
         nearbyCandidates.Sort(CompareCandidatesClockwise);
+    }
+
+    private bool IsWithinSingleTile(Vector3 targetPosition)
+    {
+        float gridSize = Mathf.Max(0.01f, gridMovement != null ? gridMovement.GridSize : 1f);
+        float maxTileDistance = gridSize + rangeTolerance;
+
+        Vector3 snappedPlayer = gridMovement != null
+            ? gridMovement.SnapToGrid(transform.position)
+            : transform.position;
+        Vector3 snappedTarget = gridMovement != null
+            ? gridMovement.SnapToGrid(targetPosition)
+            : targetPosition;
+
+        float deltaX = Mathf.Abs(snappedTarget.x - snappedPlayer.x);
+        float deltaY = Mathf.Abs(snappedTarget.y - snappedPlayer.y);
+
+        bool withinSquare = deltaX <= maxTileDistance && deltaY <= maxTileDistance;
+        bool notSameTile = deltaX > rangeTolerance || deltaY > rangeTolerance;
+        return withinSquare && notSameTile;
     }
 
     private int CompareCandidatesClockwise(InteractionCandidate left, InteractionCandidate right)
@@ -460,6 +528,13 @@ public class PlayerController : MonoBehaviour
 
             case InteractionSelectionState.MultiCandidateReady:
                 UIManager.Instance.ApplyIndicatorState(playerIndicatorRenderer, UIManager.InteractIndicatorState.PlayerMultiTarget);
+
+                for (int i = 0; i < nearbyCandidates.Count; i++)
+                {
+                    UIManager.Instance.ApplyIndicatorState(
+                        nearbyCandidates[i].Indicator,
+                        UIManager.InteractIndicatorState.Discoverable);
+                }
                 break;
 
             case InteractionSelectionState.MultiCandidateSelecting:
@@ -474,7 +549,7 @@ public class PlayerController : MonoBehaviour
 
                 if (selectedCandidateIndex >= nearbyCandidates.Count)
                 {
-                    UIManager.Instance.ApplyIndicatorState(playerIndicatorRenderer, UIManager.InteractIndicatorState.PlayerMultiTarget);
+                    UIManager.Instance.ApplyIndicatorState(playerIndicatorRenderer, UIManager.InteractIndicatorState.Cancel);
                 }
                 break;
         }
@@ -639,6 +714,7 @@ public class PlayerController : MonoBehaviour
         inputDeadZone = Mathf.Clamp01(inputDeadZone);
         interactionRadius = Mathf.Max(0.01f, interactionRadius);
         nearbyInteractableRange = Mathf.Max(0.1f, nearbyInteractableRange);
+        rangeTolerance = Mathf.Max(0.01f, rangeTolerance);
         bumpDuration = Mathf.Max(0.01f, bumpDuration);
         inputCooldownDuration = Mathf.Max(0f, inputCooldownDuration);
         AutoAssignPlayerIndicator();

@@ -15,6 +15,7 @@ public class UIManager : MonoBehaviour
         PlayerMultiTarget,
         Discoverable,
         Selected,
+        Cancel,
     }
 
     private const string HeroDisplayName = "Hero";
@@ -54,6 +55,11 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Sprite playerMultiTargetIndicatorSprite;
     [SerializeField] private Sprite interactableDiscoverableIndicatorSprite;
     [SerializeField] private Sprite interactableSelectedIndicatorSprite;
+    [SerializeField] private Sprite cancelIndicatorSprite;
+    [SerializeField] private Color playerMultiTargetIndicatorColor = Color.white;
+    [SerializeField] private Color interactableDiscoverableIndicatorColor = new(0.4f, 0.4f, 0.4f, 0.9f);
+    [SerializeField] private Color interactableSelectedIndicatorColor = Color.white;
+    [SerializeField] private Color cancelIndicatorColor = new(1f, 0.82f, 0.82f, 1f);
 
     [Header("Cutscene Elements")]
     [SerializeField] private Image cutsceneAvatarImage;
@@ -477,20 +483,24 @@ public class UIManager : MonoBehaviour
                 break;
 
             case InteractIndicatorState.PlayerMultiTarget:
-                SetIndicatorSprite(indicator, playerMultiTargetIndicatorSprite);
+                SetIndicatorVisual(indicator, playerMultiTargetIndicatorSprite, playerMultiTargetIndicatorColor);
                 break;
 
             case InteractIndicatorState.Discoverable:
-                SetIndicatorSprite(indicator, interactableDiscoverableIndicatorSprite);
+                SetIndicatorVisual(indicator, interactableDiscoverableIndicatorSprite, interactableDiscoverableIndicatorColor);
                 break;
 
             case InteractIndicatorState.Selected:
-                SetIndicatorSprite(indicator, interactableSelectedIndicatorSprite);
+                SetIndicatorVisual(indicator, interactableSelectedIndicatorSprite, interactableSelectedIndicatorColor);
+                break;
+
+            case InteractIndicatorState.Cancel:
+                SetIndicatorVisual(indicator, cancelIndicatorSprite != null ? cancelIndicatorSprite : playerMultiTargetIndicatorSprite, cancelIndicatorColor);
                 break;
         }
     }
 
-    private static void SetIndicatorSprite(SpriteRenderer indicator, Sprite sprite)
+    private static void SetIndicatorVisual(SpriteRenderer indicator, Sprite sprite, Color color)
     {
         if (indicator == null)
         {
@@ -498,6 +508,7 @@ public class UIManager : MonoBehaviour
         }
 
         indicator.sprite = sprite;
+        indicator.color = color;
         indicator.gameObject.SetActive(sprite != null);
     }
 
