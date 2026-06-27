@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using TMPro;
 using UnityEngine.UI;
 
 [DefaultExecutionOrder(50)]
@@ -13,7 +14,7 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] private string combatHintEventId = "Event3";
     [SerializeField] private string outroEventId = "Event4";
 
-    [SerializeField] private string tutorialMonsterName = "spider (1)";
+    [SerializeField] private string tutorialMonsterName = "rat (1)";
 
     [Header("Battle Guidance")]
     [SerializeField] private Color highlightColor = new(1f, 0.86f, 0.2f, 1f);
@@ -84,6 +85,12 @@ public class TutorialManager : MonoBehaviour
 
         ActivateTutorialMonster();
         yield return StartCoroutine(PlayExternalEvent(monsterApproachEvent));
+
+        if (battleManager != null)
+        {
+            battleManager.SetOpeningTutorialMode(true);
+        }
+
         yield return StartCoroutine(PlayExternalEvent(combatHintEvent));
         yield return new WaitUntil(() => battleManager != null && battleManager.IsBattleActive);
         yield return StartCoroutine(ShowBattleHintsRoutine());
@@ -266,43 +273,149 @@ public class TutorialManager : MonoBehaviour
 
     private IEnumerator ShowBattleHintsRoutine()
     {
-        if (UIManager.Instance == null)
+        if (UIManager.Instance == null || battleManager == null)
         {
             yield break;
         }
 
-        UIManager.Instance.AppendCombatLog("Attack deals damage and wins fights. Use it if you want to defeat the monster.");
-        yield return StartCoroutine(PulseButton(UIManager.Instance.AttackButton));
+        yield return new WaitUntil(AreTutorialButtonsReady);
+        yield return StartCoroutine(WaitForFreshSubmit());
 
-        if (battleManager == null || !battleManager.IsBattleActive)
+        UIManager.Instance.SetBattleButtonsInteractable(false);
+        UIManager.Instance.SetCombatLog("Attack is your main damage option. Use it when you want to defeat the enemy.\n\nPress confirm to continue.");
+        yield return StartCoroutine(PulseButton(UIManager.Instance.AttackButton, true));
+
+        if (!battleManager.IsBattleActive)
         {
             yield break;
         }
 
-        UIManager.Instance.AppendCombatLog("Run lets you leave battle safely. Use it any time you want to back out.");
-        yield return StartCoroutine(PulseButton(UIManager.Instance.RunButton));
+        UIManager.Instance.SetCombatLog("Run lets you leave battle safely. If a fight looks bad, this gets you out.\n\nPress confirm to continue.");
+        yield return StartCoroutine(PulseButton(UIManager.Instance.RunButton, true));
+
+        if (!battleManager.IsBattleActive)
+        {
+            yield break;
+        }
+
+        UIManager.Instance.SetCombatLog("Now the battle starts for real.\n\nPress confirm to begin.");
+        yield return StartCoroutine(WaitForFreshSubmit());
+
+        if (!battleManager.IsBattleActive)
+        {
+            yield break;
+        }
+
+        battleManager.CompleteOpeningTutorial();
     }
 
-    private IEnumerator PulseButton(Button button)
+    private IEnumerator PulseButton(Button button, bool waitForSubmit)
     {
-        if (button?.targetGraphic == null)
+        if (button == null)
         {
             yield break;
         }
 
         Graphic graphic = button.targetGraphic;
-        Color baseColor = graphic.color;
-        float elapsed = 0f;
+        Color baseGraphicColor = graphic != null ? graphic.color : Color.white;
+        Vector3 baseScale = button.transform.localScale;
+        TextMeshProUGUI label = button.GetComponentInChildren<TextMeshProUGUI>(true);
+        Color baseLabelColor = label != null ? label.color : Color.white;
 
-        while (elapsed < highlightDuration && battleManager != null && battleManager.IsBattleActive)
+        button.Select();
+
+        if (waitForSubmit)
         {
-            elapsed += Time.deltaTime;
-            float pulse = (Mathf.Sin(elapsed * highlightPulseSpeed) + 1f) * 0.5f;
-            graphic.color = Color.Lerp(baseColor, highlightColor, pulse);
+            while (battleManager != null && battleManager.IsBattleActive && !IsTutorialSubmitPressed())
+            {
+                ApplyPulse(button, graphic, label, baseScale, baseGraphicColor, baseLabelColor);
+                yield return null;
+            }
+
+            if (battleManager != null && battleManager.IsBattleActive)
+            {
+                yield return new WaitUntil(() => !IsTutorialSubmitHeld());
+            }
+        }
+        else
+        {
+            float elapsed = 0f;
+            while (elapsed < highlightDuration && battleManager != null && battleManager.IsBattleActive)
+            {
+                elapsed += Time.deltaTime;
+                ApplyPulse(button, graphic, label, baseScale, baseGraphicColor, baseLabelColor);
+                yield return null;
+            }
+        }
+
+        button.transform.localScale = baseScale;
+        if (graphic != null)
+        {
+            graphic.color = baseGraphicColor;
+        }
+
+        if (label != null)
+        {
+            label.color = baseLabelColor;
+        }
+    }
+
+    private void ApplyPulse(Button button, Graphic graphic, TextMeshProUGUI label, Vector3 baseScale, Color baseGraphicColor, Color baseLabelColor)
+    {
+        float pulse = (Mathf.Sin(Time.unscaledTime * highlightPulseSpeed) + 1f) * 0.5f;
+        button.transform.localScale = Vector3.Lerp(baseScale, baseScale * 1.12f, pulse);
+
+        if (graphic != null)
+        {
+            graphic.color = Color.Lerp(baseGraphicColor, highlightColor, pulse);
+        }
+
+        if (label != null)
+        {
+            label.color = Color.Lerp(baseLabelColor, highlightColor, pulse);
+        }
+    }
+
+    private static bool IsTutorialSubmitPressed()
+    {
+        return Input.GetKeyDown(KeyCode.Z)
+            || Input.GetButtonDown("Submit")
+            || Input.GetKeyDown(KeyCode.Space)
+            || Input.GetMouseButtonDown(0);
+    }
+
+    private static bool IsTutorialSubmitHeld()
+    {
+        return Input.GetKey(KeyCode.Z)
+            || Input.GetButton("Submit")
+            || Input.GetKey(KeyCode.Space)
+            || Input.GetMouseButton(0);
+    }
+
+    private IEnumerator WaitForFreshSubmit()
+    {
+        while (IsTutorialSubmitHeld())
+        {
             yield return null;
         }
 
-        graphic.color = baseColor;
+        yield return new WaitUntil(IsTutorialSubmitPressed);
+        yield return new WaitUntil(() => !IsTutorialSubmitHeld());
+    }
+
+    private bool AreTutorialButtonsReady()
+    {
+        if (UIManager.Instance == null)
+        {
+            return false;
+        }
+
+        Button attackButton = UIManager.Instance.AttackButton;
+        Button runButton = UIManager.Instance.RunButton;
+        return attackButton != null
+            && runButton != null
+            && attackButton.gameObject.activeInHierarchy
+            && runButton.gameObject.activeInHierarchy;
     }
 
     private void HandleBattleEnded(BattleManager.BattleResult result, MonsterClass monster)

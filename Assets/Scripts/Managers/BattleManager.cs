@@ -36,6 +36,8 @@ public class BattleManager : MonoBehaviour
     private Vector3 playerStartScale;
     private Vector3 monsterStartScale;
     private int playerBattleMaxHp;
+    private bool suppressOpeningBattleLog;
+    private bool openingActionsDeferred;
 
     private readonly List<SpriteRenderer> hiddenCreatureRenderers = new();
     private readonly List<SpriteSortingState> activeBattleSpriteStates = new();
@@ -75,6 +77,33 @@ public class BattleManager : MonoBehaviour
 
     public bool IsBattleActive => battleActive;
     public event Action<BattleResult, MonsterClass> BattleEnded;
+
+    public void SetOpeningTutorialMode(bool enabled)
+    {
+        suppressOpeningBattleLog = enabled;
+
+        if (!enabled)
+        {
+            openingActionsDeferred = false;
+        }
+    }
+
+    public void CompleteOpeningTutorial()
+    {
+        suppressOpeningBattleLog = false;
+
+        if (!battleActive || !openingActionsDeferred || UIManager.Instance == null || activeMonster == null)
+        {
+            openingActionsDeferred = false;
+            return;
+        }
+
+        UIManager.Instance.SetCombatLog($"A <color=red>{activeMonster.DisplayName}</color> has appeared!");
+        UIManager.Instance.AppendCombatLog($"<color=green>{HeroDisplayName}</color> moves first.");
+        UIManager.Instance.SetBattleButtonsInteractable(true);
+        UIManager.Instance.SelectBattleDefaultAction();
+        openingActionsDeferred = false;
+    }
 
     private void Awake()
     {
@@ -182,10 +211,19 @@ public class BattleManager : MonoBehaviour
         SetOverworldCreatureSpritesVisible(false);
         UIManager.Instance.ShowBattleUI();
         UIManager.Instance.BindBattle(activePlayer, activeMonster, true, playerBattleMaxHp);
-        UIManager.Instance.SetCombatLog($"A <color=red>{activeMonster.DisplayName}</color> has appeared!");
-        UIManager.Instance.AppendCombatLog($"<color=green>{HeroDisplayName}</color> moves first.");
-        UIManager.Instance.SetBattleButtonsInteractable(true);
-        UIManager.Instance.SelectBattleDefaultAction();
+
+        if (suppressOpeningBattleLog)
+        {
+            openingActionsDeferred = true;
+            UIManager.Instance.SetCombatLog(string.Empty);
+        }
+        else
+        {
+            UIManager.Instance.SetCombatLog($"A <color=red>{activeMonster.DisplayName}</color> has appeared!");
+            UIManager.Instance.AppendCombatLog($"<color=green>{HeroDisplayName}</color> moves first.");
+            UIManager.Instance.SetBattleButtonsInteractable(true);
+            UIManager.Instance.SelectBattleDefaultAction();
+        }
 
         transitionRunning = false;
     }
@@ -323,6 +361,8 @@ public class BattleManager : MonoBehaviour
         hiddenCreatureRenderers.Clear();
         battleActive = false;
         transitionRunning = false;
+        openingActionsDeferred = false;
+        suppressOpeningBattleLog = false;
 
         if (grantPlayerTurnOnExit)
         {

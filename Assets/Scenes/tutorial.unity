@@ -62821,7 +62821,7 @@ MonoBehaviour:
   monsterApproachEventId: Event2
   combatHintEventId: Event3
   outroEventId: Event4
-  tutorialMonsterName: spider (1)
+  tutorialMonsterName: rat (1)
   highlightColor: {r: 1, g: 0.86, b: 0.2, a: 1}
   highlightDuration: 1.4
   highlightPulseSpeed: 7
