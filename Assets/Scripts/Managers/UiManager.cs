@@ -288,6 +288,9 @@ public class UIManager : MonoBehaviour
         SelectBattleAction(attackButton);
     }
 
+    public Button AttackButton => attackButton;
+    public Button RunButton => runButton;
+
     public void SelectAttackAction()
     {
         SelectBattleAction(attackButton);
