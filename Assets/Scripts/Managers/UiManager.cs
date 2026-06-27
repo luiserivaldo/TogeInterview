@@ -373,7 +373,7 @@ public class UIManager : MonoBehaviour
 
         if (itemButton != null)
         {
-            itemButton.interactable = enabled;
+            itemButton.interactable = false;
         }
 
         if (runButton != null)

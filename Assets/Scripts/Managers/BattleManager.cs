@@ -21,6 +21,12 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private float actionPauseDuration = 0.05f;
     [SerializeField] private float defeatFadeDuration = 0.4f;
     [SerializeField] private float conclusionPauseDuration = 0.2f;
+    [SerializeField] private float attackLungeDistance = 0.45f;
+    [SerializeField] private float attackLungeDuration = 0.12f;
+    [SerializeField] private float hitFlashDuration = 0.16f;
+    [SerializeField] private float hitShakeMagnitude = 0.08f;
+    [SerializeField] private Color damageTint = new(1f, 0.55f, 0.55f, 1f);
+    [SerializeField] private Color defeatTint = new(0.62f, 0.62f, 0.62f, 1f);
 
     private PlayerClass activePlayer;
     private MonsterClass activeMonster;
@@ -41,6 +47,7 @@ public class BattleManager : MonoBehaviour
 
     private readonly List<SpriteRenderer> hiddenCreatureRenderers = new();
     private readonly List<SpriteSortingState> activeBattleSpriteStates = new();
+    private AudioManager audioManager;
 
     public enum BattleResult
     {
@@ -116,6 +123,8 @@ public class BattleManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
+        audioManager = UnityEngine.Object.FindFirstObjectByType<AudioManager>();
     }
 
     public void StartBattle(PlayerClass player, MonsterClass monster)
@@ -146,6 +155,8 @@ public class BattleManager : MonoBehaviour
 
         ResetCombatantAlpha(activePlayer.gameObject);
         ResetCombatantAlpha(activeMonster.gameObject);
+        ResetCombatantColor(activePlayer.gameObject);
+        ResetCombatantColor(activeMonster.gameObject);
 
         battleActive = true;
         transitionRunning = true;
@@ -235,7 +246,11 @@ public class BattleManager : MonoBehaviour
 
         if (action == BattleAction.Attack)
         {
+            yield return AnimateAttackRoutine(activePlayer.transform, activeMonster.transform);
+
             int damage = activeMonster.ApplyDamage(activePlayer.attack);
+            PlayBattleSfx("damage", "combat");
+            yield return HitReactRoutine(activeMonster.gameObject, activeMonster.IsDefeated);
             UIManager.Instance.AppendCombatLog($"<color=green>{HeroDisplayName}</color> attacks <color=red>{activeMonster.DisplayName}</color> for <color=red>{damage}</color> damage!");
             UIManager.Instance.BindBattle(activePlayer, activeMonster, false, playerBattleMaxHp);
         }
@@ -253,7 +268,10 @@ public class BattleManager : MonoBehaviour
 
         yield return new WaitForSeconds(actionPauseDuration);
 
+        yield return AnimateAttackRoutine(activeMonster.transform, activePlayer.transform);
         int incomingDamage = activePlayer.ApplyDamage(activeMonster.attack);
+        PlayBattleSfx("damage", "combat");
+        yield return HitReactRoutine(activePlayer.gameObject, activePlayer.IsDefeated);
         UIManager.Instance.AppendCombatLog($"<color=red>{activeMonster.DisplayName}</color> attacks <color=green>{HeroDisplayName}</color> for {incomingDamage}!");
         UIManager.Instance.BindBattle(activePlayer, activeMonster, activePlayer.IsDefeated ? false : true, playerBattleMaxHp);
 
@@ -275,6 +293,7 @@ public class BattleManager : MonoBehaviour
     {
         UIManager.Instance.BindBattle(activePlayer, activeMonster, false, playerBattleMaxHp);
         UIManager.Instance.AppendCombatLog($"<color=red>{activeMonster.DisplayName}</color> has been defeated! Earn <color=yellow>{activeMonster.money}</color> GP!");
+        PlayBattleSfx("enemyDefeat", "kill");
 
         yield return new WaitForSeconds(conclusionPauseDuration);
 
@@ -329,6 +348,11 @@ public class BattleManager : MonoBehaviour
         UIManager.Instance.ShowOverworldUI();
         SetOverworldCreatureSpritesVisible(true);
 
+        if (deactivateMonster && activeMonster != null && activeMonster.IsDefeated)
+        {
+            SetCombatantRenderersEnabled(activeMonster.gameObject, false);
+        }
+
         yield return AnimateCombatants(
             activePlayer.transform.position,
             playerReturnPosition,
@@ -343,6 +367,8 @@ public class BattleManager : MonoBehaviour
         RestoreActiveBattleSpriteSorting();
         ResetCombatantAlpha(activePlayer.gameObject);
         ResetCombatantAlpha(activeMonster.gameObject);
+        ResetCombatantColor(activePlayer.gameObject);
+        ResetCombatantColor(activeMonster.gameObject);
 
         if (deactivateMonster && activeMonster != null)
         {
@@ -407,6 +433,18 @@ public class BattleManager : MonoBehaviour
 
         SpriteRenderer[] renderers = combatant.GetComponentsInChildren<SpriteRenderer>(true);
         SetRenderersAlpha(renderers, 1f);
+        SetRenderersEnabled(renderers, true);
+    }
+
+    private void ResetCombatantColor(GameObject combatant)
+    {
+        if (combatant == null)
+        {
+            return;
+        }
+
+        SpriteRenderer[] renderers = combatant.GetComponentsInChildren<SpriteRenderer>(true);
+        SetRenderersColor(renderers, Color.white);
     }
 
     private void SetRenderersAlpha(SpriteRenderer[] renderers, float alpha)
@@ -421,6 +459,189 @@ public class BattleManager : MonoBehaviour
             Color color = renderer.color;
             color.a = alpha;
             renderer.color = color;
+        }
+    }
+
+
+    private IEnumerator AnimateAttackRoutine(Transform attacker, Transform target)
+    {
+        if (attacker == null || target == null)
+        {
+            yield break;
+        }
+
+        Vector3 startPosition = attacker.position;
+        Vector3 direction = (target.position - startPosition).normalized;
+        if (direction.sqrMagnitude <= Mathf.Epsilon)
+        {
+            yield break;
+        }
+
+        Vector3 lungeTarget = startPosition + (direction * attackLungeDistance);
+        yield return MoveTransformRoutine(attacker, startPosition, lungeTarget, attackLungeDuration);
+        yield return MoveTransformRoutine(attacker, lungeTarget, startPosition, attackLungeDuration);
+    }
+
+    private IEnumerator HitReactRoutine(GameObject combatant, bool defeated)
+    {
+        if (combatant == null)
+        {
+            yield break;
+        }
+
+        SpriteRenderer[] renderers = combatant.GetComponentsInChildren<SpriteRenderer>(true);
+        if (renderers.Length == 0)
+        {
+            yield break;
+        }
+
+        Dictionary<SpriteRenderer, Color> originalColors = CacheRendererColors(renderers);
+        Transform combatantTransform = combatant.transform;
+        Vector3 originalPosition = combatantTransform.position;
+
+        float elapsed = 0f;
+        while (elapsed < hitFlashDuration)
+        {
+            elapsed += Time.deltaTime;
+            float progress = Mathf.Clamp01(elapsed / hitFlashDuration);
+            float tintStrength = 1f - progress;
+
+            ApplyTint(renderers, originalColors, damageTint, tintStrength);
+            Vector2 shakeOffset = UnityEngine.Random.insideUnitCircle * hitShakeMagnitude;
+            combatantTransform.position = new Vector3(originalPosition.x + shakeOffset.x, originalPosition.y + shakeOffset.y, originalPosition.z);
+            yield return null;
+        }
+
+        combatantTransform.position = originalPosition;
+
+        if (defeated)
+        {
+            SetRenderersColor(renderers, defeatTint);
+            yield break;
+        }
+
+        RestoreRendererColors(originalColors);
+    }
+
+    private static IEnumerator MoveTransformRoutine(Transform target, Vector3 from, Vector3 to, float duration)
+    {
+        if (target == null)
+        {
+            yield break;
+        }
+
+        if (duration <= 0f)
+        {
+            target.position = to;
+            yield break;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float progress = Mathf.Clamp01(elapsed / duration);
+            target.position = Vector3.Lerp(from, to, progress);
+            yield return null;
+        }
+
+        target.position = to;
+    }
+
+    private static Dictionary<SpriteRenderer, Color> CacheRendererColors(SpriteRenderer[] renderers)
+    {
+        Dictionary<SpriteRenderer, Color> colors = new();
+        foreach (SpriteRenderer renderer in renderers)
+        {
+            if (renderer != null)
+            {
+                colors[renderer] = renderer.color;
+            }
+        }
+
+        return colors;
+    }
+
+    private static void RestoreRendererColors(Dictionary<SpriteRenderer, Color> originalColors)
+    {
+        foreach (KeyValuePair<SpriteRenderer, Color> entry in originalColors)
+        {
+            if (entry.Key != null)
+            {
+                entry.Key.color = entry.Value;
+            }
+        }
+    }
+
+    private static void ApplyTint(SpriteRenderer[] renderers, Dictionary<SpriteRenderer, Color> originalColors, Color tintColor, float tintStrength)
+    {
+        foreach (SpriteRenderer renderer in renderers)
+        {
+            if (renderer == null || !originalColors.TryGetValue(renderer, out Color baseColor))
+            {
+                continue;
+            }
+
+            Color targetColor = Color.Lerp(baseColor, tintColor, tintStrength);
+            targetColor.a = baseColor.a;
+            renderer.color = targetColor;
+        }
+    }
+
+    private void SetCombatantRenderersEnabled(GameObject combatant, bool enabled)
+    {
+        if (combatant == null)
+        {
+            return;
+        }
+
+        SpriteRenderer[] renderers = combatant.GetComponentsInChildren<SpriteRenderer>(true);
+        SetRenderersEnabled(renderers, enabled);
+    }
+
+    private static void SetRenderersEnabled(SpriteRenderer[] renderers, bool enabled)
+    {
+        foreach (SpriteRenderer renderer in renderers)
+        {
+            if (renderer != null)
+            {
+                renderer.enabled = enabled;
+            }
+        }
+    }
+
+    private static void SetRenderersColor(SpriteRenderer[] renderers, Color color)
+    {
+        foreach (SpriteRenderer renderer in renderers)
+        {
+            if (renderer == null)
+            {
+                continue;
+            }
+
+            Color updatedColor = color;
+            updatedColor.a = renderer.color.a;
+            renderer.color = updatedColor;
+        }
+    }
+
+    private void PlayBattleSfx(string primaryKey, string fallbackKey)
+    {
+        audioManager ??= UnityEngine.Object.FindFirstObjectByType<AudioManager>();
+        if (audioManager == null)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(primaryKey) && audioManager.HasSfx(primaryKey))
+        {
+            audioManager.PlaySFX(primaryKey);
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(fallbackKey))
+        {
+            audioManager.PlaySFX(fallbackKey);
         }
     }
 

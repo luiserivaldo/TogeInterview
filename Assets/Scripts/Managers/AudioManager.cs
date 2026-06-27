@@ -13,6 +13,8 @@ public class AudioManager : MonoBehaviour
 
     [Header("Sound Effects")]
     public AudioClip sfxCombat;
+    public AudioClip sfxDamage;
+    public AudioClip sfxEnemyDefeat;
     public AudioClip sfxKill;
     public AudioClip sfxUpgrade;
     public AudioClip fountainBuy;
@@ -56,10 +58,25 @@ public class AudioManager : MonoBehaviour
             RebuildSfxDictionary();
         }
 
-        if (sfxClips.ContainsKey(key) && sfxClips[key] != null)
+        if (HasSfx(key))
         {
             sfxSource.PlayOneShot(sfxClips[key]);
         }
+    }
+
+    public bool HasSfx(string key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return false;
+        }
+
+        if (sfxClips == null || sfxClips.Count == 0)
+        {
+            RebuildSfxDictionary();
+        }
+
+        return sfxClips.TryGetValue(key, out AudioClip clip) && clip != null;
     }
 
     private void EnsureAudioSources()
@@ -112,6 +129,8 @@ public class AudioManager : MonoBehaviour
         sfxClips = new Dictionary<string, AudioClip>
         {
             { "combat", sfxCombat },
+            { "damage", sfxDamage },
+            { "enemyDefeat", sfxEnemyDefeat },
             { "kill", sfxKill },
             { "upgrade", sfxUpgrade },
             { "fountain", fountainBuy },
