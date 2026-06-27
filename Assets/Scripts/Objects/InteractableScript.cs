@@ -1,7 +1,23 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class InteractableObject : MonoBehaviour
 {
+    [Serializable]
+    public class BoardPage
+    {
+        [TextArea(3, 8)]
+        public string text = string.Empty;
+    }
+
+    [Serializable]
+    public class BoardSequence
+    {
+        public string sequenceId = "default";
+        public List<BoardPage> pages = new();
+    }
+
     private const string TutorialBlacksmithPrompt = "Go ahead, approach the monster!";
 
     public enum InteractableType
@@ -26,6 +42,14 @@ public class InteractableObject : MonoBehaviour
     [SerializeField] private Sprite dialogueImage;
     [SerializeField] protected bool allowDuringOpeningTutorial;
 
+    [Header("Board Presentation")]
+    [SerializeField] private bool useBoardUi;
+    [SerializeField] private string defaultBoardSequenceId = "default";
+    [SerializeField] private string boardPreviousLabel = "Previous";
+    [SerializeField] private string boardNextLabel = "Next";
+    [SerializeField] private string boardCloseLabel = "Close";
+    [SerializeField] private List<BoardSequence> boardSequences = new();
+
     public SignType signType = SignType.None;
     public InteractableType objectType;
 
@@ -43,8 +67,8 @@ public class InteractableObject : MonoBehaviour
     }
 
     public virtual bool CanInteract =>
-    !TutorialManager.IsOpeningTutorialActive ||
-    allowDuringOpeningTutorial;
+        !TutorialManager.IsOpeningTutorialActive ||
+        allowDuringOpeningTutorial;
 
     public virtual void TryInteract(PlayerClass player)
     {
@@ -58,13 +82,18 @@ public class InteractableObject : MonoBehaviour
             return;
         }
 
-        GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
+        GameManager gameManager = UnityEngine.Object.FindFirstObjectByType<GameManager>();
         if (gameManager != null)
         {
             gameManager.InteractWithObject(this, player);
         }
 
         if (GameManager.IsGameplayLocked)
+        {
+            return;
+        }
+
+        if (TryShowBoardSequence())
         {
             return;
         }
@@ -116,6 +145,23 @@ public class InteractableObject : MonoBehaviour
         return string.IsNullOrWhiteSpace(additionalMessage) ? baseMessage : additionalMessage;
     }
 
+    public IReadOnlyList<string> GetBoardPages(string sequenceId = null)
+    {
+        List<string> pages = ExtractBoardPages(string.IsNullOrWhiteSpace(sequenceId) ? defaultBoardSequenceId : sequenceId);
+        if (pages.Count > 0)
+        {
+            return pages;
+        }
+
+        string fallbackMessage = GetInteractionMessage();
+        if (string.IsNullOrWhiteSpace(fallbackMessage))
+        {
+            return Array.Empty<string>();
+        }
+
+        return new[] { fallbackMessage };
+    }
+
     public string GetSignMessage()
     {
         string baseMessage = "";
@@ -161,9 +207,76 @@ public class InteractableObject : MonoBehaviour
         return true;
     }
 
+    private bool TryShowBoardSequence()
+    {
+        if (!useBoardUi || UIManager.Instance == null)
+        {
+            return false;
+        }
+
+        IReadOnlyList<string> pages = GetBoardPages();
+        if (pages.Count == 0)
+        {
+            return false;
+        }
+
+        UIManager.Instance.HideMessage();
+        UIManager.Instance.HideBountyBoard();
+        GameManager.SetGameplayLocked(true);
+        UIManager.Instance.ShowBoardPages(pages, HandleBoardClosed, boardPreviousLabel, boardNextLabel, boardCloseLabel);
+        return true;
+    }
+
+    private void HandleBoardClosed()
+    {
+        GameManager.SetGameplayLocked(false);
+    }
+
+    private List<string> ExtractBoardPages(string sequenceId)
+    {
+        List<string> pages = new();
+
+        BoardSequence matchedSequence = null;
+        for (int i = 0; i < boardSequences.Count; i++)
+        {
+            BoardSequence sequence = boardSequences[i];
+            if (sequence == null || sequence.pages == null || sequence.pages.Count == 0)
+            {
+                continue;
+            }
+
+            if (matchedSequence == null)
+            {
+                matchedSequence = sequence;
+            }
+
+            if (!string.IsNullOrWhiteSpace(sequenceId) && string.Equals(sequence.sequenceId, sequenceId, StringComparison.OrdinalIgnoreCase))
+            {
+                matchedSequence = sequence;
+                break;
+            }
+        }
+
+        if (matchedSequence == null)
+        {
+            return pages;
+        }
+
+        for (int i = 0; i < matchedSequence.pages.Count; i++)
+        {
+            BoardPage page = matchedSequence.pages[i];
+            if (page != null && !string.IsNullOrWhiteSpace(page.text))
+            {
+                pages.Add(page.text);
+            }
+        }
+
+        return pages;
+    }
+
     private int GetFountainCost()
     {
-        GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
+        GameManager gameManager = UnityEngine.Object.FindFirstObjectByType<GameManager>();
         return gameManager == null ? 0 : gameManager.GetCurrentFountainCost();
     }
 

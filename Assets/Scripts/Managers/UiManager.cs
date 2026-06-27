@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -69,6 +70,29 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI yesButtonText;
     [SerializeField] private TextMeshProUGUI noButtonText;
     [SerializeField] private Transform dialogueEffectAnchor;
+
+    [Header("Board Elements")]
+    [SerializeField] private GameObject boardUIRoot;
+    [SerializeField] private TextMeshProUGUI boardDialogueText;
+    [SerializeField] private GameObject boardActionGrid;
+    [SerializeField] private GameObject boardActionGridTwo;
+    [SerializeField] private Button boardLeftButton;
+    [SerializeField] private Button boardCenterButton;
+    [SerializeField] private Button boardRightButton;
+    [SerializeField] private Button boardYesButton;
+    [SerializeField] private Button boardNoButton;
+    [SerializeField] private TextMeshProUGUI boardLeftButtonText;
+    [SerializeField] private TextMeshProUGUI boardCenterButtonText;
+    [SerializeField] private TextMeshProUGUI boardRightButtonText;
+    [SerializeField] private TextMeshProUGUI boardYesButtonText;
+    [SerializeField] private TextMeshProUGUI boardNoButtonText;
+
+    private readonly List<string> activeBoardPages = new();
+    private int activeBoardPageIndex;
+    private string boardPreviousLabel = "Previous";
+    private string boardNextLabel = "Next";
+    private string boardCloseLabel = "Close";
+    private Action boardCloseAction;
 
     private void Awake()
     {
@@ -152,6 +176,11 @@ public class UIManager : MonoBehaviour
         {
             cutsceneUIRoot.SetActive(false);
         }
+
+        if (boardUIRoot != null)
+        {
+            boardUIRoot.SetActive(false);
+        }
     }
 
     public void ShowBattleUI()
@@ -170,6 +199,11 @@ public class UIManager : MonoBehaviour
         {
             cutsceneUIRoot.SetActive(false);
         }
+
+        if (boardUIRoot != null)
+        {
+            boardUIRoot.SetActive(false);
+        }
     }
 
     public void ShowCutsceneUI()
@@ -187,6 +221,11 @@ public class UIManager : MonoBehaviour
         if (cutsceneUIRoot != null)
         {
             cutsceneUIRoot.SetActive(true);
+        }
+
+        if (boardUIRoot != null)
+        {
+            boardUIRoot.SetActive(false);
         }
     }
 
@@ -290,6 +329,286 @@ public class UIManager : MonoBehaviour
     public void BindDialogueChoiceHandlers(UnityAction yesAction, UnityAction noAction)
     {
         BindCutsceneChoiceHandlers(yesAction, noAction);
+    }
+
+
+    public void ShowBoardPages(IReadOnlyList<string> pages, Action onClosed = null, string previousLabel = "Previous", string nextLabel = "Next", string closeLabel = "Close")
+    {
+        activeBoardPages.Clear();
+        if (pages != null)
+        {
+            for (int i = 0; i < pages.Count; i++)
+            {
+                if (!string.IsNullOrWhiteSpace(pages[i]))
+                {
+                    activeBoardPages.Add(pages[i]);
+                }
+            }
+        }
+
+        if (activeBoardPages.Count == 0)
+        {
+            activeBoardPages.Add(string.Empty);
+        }
+
+        boardPreviousLabel = string.IsNullOrWhiteSpace(previousLabel) ? "Previous" : previousLabel;
+        boardNextLabel = string.IsNullOrWhiteSpace(nextLabel) ? "Next" : nextLabel;
+        boardCloseLabel = string.IsNullOrWhiteSpace(closeLabel) ? "Close" : closeLabel;
+        boardCloseAction = onClosed;
+        activeBoardPageIndex = 0;
+
+        ShowBoardRoot();
+
+        if (boardActionGrid != null)
+        {
+            boardActionGrid.SetActive(true);
+        }
+
+        if (boardActionGridTwo != null)
+        {
+            boardActionGridTwo.SetActive(false);
+        }
+
+        BindButton(boardLeftButton, HandleBoardPreviousPressed, true);
+        BindButton(boardCenterButton, null, true);
+        BindButton(boardRightButton, HandleBoardAdvancePressed, true);
+        RefreshBoardPage();
+    }
+
+    public void ShowBoardChoice(string text, UnityAction yesAction, UnityAction noAction, string yesLabel = "Yes", string noLabel = "No")
+    {
+        boardCloseAction = null;
+        activeBoardPages.Clear();
+        activeBoardPageIndex = 0;
+
+        ShowBoardRoot();
+
+        if (boardDialogueText != null)
+        {
+            boardDialogueText.text = text ?? string.Empty;
+        }
+
+        if (boardActionGrid != null)
+        {
+            boardActionGrid.SetActive(false);
+        }
+
+        if (boardActionGridTwo != null)
+        {
+            boardActionGridTwo.SetActive(true);
+        }
+
+        if (boardYesButtonText != null)
+        {
+            boardYesButtonText.text = string.IsNullOrWhiteSpace(yesLabel) ? "Yes" : yesLabel;
+        }
+
+        if (boardNoButtonText != null)
+        {
+            boardNoButtonText.text = string.IsNullOrWhiteSpace(noLabel) ? "No" : noLabel;
+        }
+
+        BindButton(boardYesButton, yesAction, true);
+        BindButton(boardNoButton, noAction, true);
+        ConfigureBoardChoiceNavigation();
+        SelectBoardChoiceDefaultAction();
+    }
+
+    public void HideBoardUI()
+    {
+        activeBoardPages.Clear();
+        activeBoardPageIndex = 0;
+        boardCloseAction = null;
+
+        BindButton(boardLeftButton, null, true);
+        BindButton(boardCenterButton, null, true);
+        BindButton(boardRightButton, null, true);
+        BindButton(boardYesButton, null, true);
+        BindButton(boardNoButton, null, true);
+
+        if (boardDialogueText != null)
+        {
+            boardDialogueText.text = string.Empty;
+        }
+
+        if (boardUIRoot != null)
+        {
+            boardUIRoot.SetActive(false);
+        }
+
+        ClearSelectedUI();
+    }
+
+    private void ShowBoardRoot()
+    {
+        HideMessage();
+        HideBountyBoard();
+        HideCutsceneUI();
+
+        if (overworldUIRoot != null)
+        {
+            overworldUIRoot.SetActive(true);
+        }
+
+        if (battleUIRoot != null)
+        {
+            battleUIRoot.SetActive(false);
+        }
+
+        if (boardUIRoot != null)
+        {
+            boardUIRoot.SetActive(true);
+        }
+    }
+
+    private void HandleBoardPreviousPressed()
+    {
+        if (activeBoardPageIndex <= 0)
+        {
+            return;
+        }
+
+        activeBoardPageIndex--;
+        RefreshBoardPage();
+    }
+
+    private void HandleBoardAdvancePressed()
+    {
+        if (activeBoardPageIndex < activeBoardPages.Count - 1)
+        {
+            activeBoardPageIndex++;
+            RefreshBoardPage();
+            return;
+        }
+
+        Action closeAction = boardCloseAction;
+        HideBoardUI();
+        closeAction?.Invoke();
+    }
+
+    private void RefreshBoardPage()
+    {
+        if (boardDialogueText != null)
+        {
+            string currentPage = activeBoardPageIndex >= 0 && activeBoardPageIndex < activeBoardPages.Count
+                ? activeBoardPages[activeBoardPageIndex]
+                : string.Empty;
+            boardDialogueText.text = currentPage;
+        }
+
+        bool canGoBack = activeBoardPageIndex > 0;
+        bool canAdvance = activeBoardPages.Count > 0;
+
+        if (boardLeftButton != null)
+        {
+            boardLeftButton.gameObject.SetActive(canGoBack);
+            boardLeftButton.interactable = canGoBack;
+        }
+
+        if (boardCenterButton != null)
+        {
+            boardCenterButton.gameObject.SetActive(false);
+        }
+
+        if (boardRightButton != null)
+        {
+            boardRightButton.gameObject.SetActive(canAdvance);
+            boardRightButton.interactable = canAdvance;
+        }
+
+        if (boardLeftButtonText != null)
+        {
+            boardLeftButtonText.text = boardPreviousLabel;
+        }
+
+        if (boardRightButtonText != null)
+        {
+            bool isLastPage = activeBoardPageIndex >= activeBoardPages.Count - 1;
+            boardRightButtonText.text = isLastPage ? boardCloseLabel : boardNextLabel;
+        }
+
+        ConfigureBoardPageNavigation();
+        SelectBoardPageDefaultAction();
+    }
+
+    private void SelectBoardPageDefaultAction()
+    {
+        if (boardRightButton != null && boardRightButton.gameObject.activeInHierarchy && boardRightButton.interactable)
+        {
+            SelectBattleAction(boardRightButton);
+            return;
+        }
+
+        if (boardLeftButton != null && boardLeftButton.gameObject.activeInHierarchy && boardLeftButton.interactable)
+        {
+            SelectBattleAction(boardLeftButton);
+            return;
+        }
+
+        ClearSelectedUI();
+    }
+
+    private void SelectBoardChoiceDefaultAction()
+    {
+        if (boardYesButton != null && boardYesButton.gameObject.activeInHierarchy && boardYesButton.interactable)
+        {
+            SelectBattleAction(boardYesButton);
+            return;
+        }
+
+        if (boardNoButton != null && boardNoButton.gameObject.activeInHierarchy && boardNoButton.interactable)
+        {
+            SelectBattleAction(boardNoButton);
+            return;
+        }
+
+        ClearSelectedUI();
+    }
+
+    private void ConfigureBoardPageNavigation()
+    {
+        ConfigureHorizontalNavigation(boardLeftButton, boardRightButton);
+        ConfigureSelfNavigation(boardCenterButton);
+    }
+
+    private void ConfigureBoardChoiceNavigation()
+    {
+        ConfigureHorizontalNavigation(boardYesButton, boardNoButton);
+    }
+
+    private static void ConfigureHorizontalNavigation(Button leftButton, Button rightButton)
+    {
+        if (leftButton != null)
+        {
+            Navigation leftNavigation = leftButton.navigation;
+            leftNavigation.mode = Navigation.Mode.Explicit;
+            leftNavigation.selectOnLeft = rightButton != null && rightButton.gameObject.activeInHierarchy ? rightButton : leftButton;
+            leftNavigation.selectOnRight = rightButton != null && rightButton.gameObject.activeInHierarchy ? rightButton : leftButton;
+            leftButton.navigation = leftNavigation;
+        }
+
+        if (rightButton != null)
+        {
+            Navigation rightNavigation = rightButton.navigation;
+            rightNavigation.mode = Navigation.Mode.Explicit;
+            rightNavigation.selectOnLeft = leftButton != null && leftButton.gameObject.activeInHierarchy ? leftButton : rightButton;
+            rightNavigation.selectOnRight = leftButton != null && leftButton.gameObject.activeInHierarchy ? leftButton : rightButton;
+            rightButton.navigation = rightNavigation;
+        }
+    }
+
+    private static void ConfigureSelfNavigation(Button button)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        Navigation navigation = button.navigation;
+        navigation.mode = Navigation.Mode.Explicit;
+        navigation.selectOnLeft = button;
+        navigation.selectOnRight = button;
+        button.navigation = navigation;
     }
 
     public void SelectDialogueDefaultAction()
@@ -540,6 +859,18 @@ public class UIManager : MonoBehaviour
             dialogueEffectAnchor ??= cutsceneUIRoot.transform;
             ConfigureCutsceneNavigation();
         }
+
+        boardUIRoot ??= FindSceneObject("BoardUI");
+        if (boardUIRoot != null)
+        {
+            boardDialogueText ??= FindComponentInChildren<TextMeshProUGUI>(boardUIRoot.transform, "DialogueTextBox");
+            boardActionGrid ??= FindChildRecursive(boardUIRoot.transform, "ActionButtonGrid")?.gameObject;
+            boardActionGrid ??= FindChildRecursive(boardUIRoot.transform, "ActionButtonGrid_Three")?.gameObject;
+            boardActionGridTwo ??= FindChildRecursive(boardUIRoot.transform, "ActionButtonGrid_Two")?.gameObject;
+
+            AssignBoardButtons();
+            HideBoardUI();
+        }
     }
 
     private void ConfigureCutsceneNavigation()
@@ -560,6 +891,68 @@ public class UIManager : MonoBehaviour
         noNavigation.selectOnLeft = yesButton;
         noNavigation.selectOnRight = yesButton;
         noButton.navigation = noNavigation;
+    }
+
+
+    private void AssignBoardButtons()
+    {
+        List<Button> pageButtons = GetDirectChildButtons(boardActionGrid != null ? boardActionGrid.transform : null);
+        if (pageButtons.Count > 0)
+        {
+            boardLeftButton ??= pageButtons[0];
+        }
+
+        if (pageButtons.Count > 1)
+        {
+            boardCenterButton ??= pageButtons[1];
+        }
+
+        if (pageButtons.Count > 2)
+        {
+            boardRightButton ??= pageButtons[2];
+        }
+
+        List<Button> choiceButtons = GetDirectChildButtons(boardActionGridTwo != null ? boardActionGridTwo.transform : null);
+        if (choiceButtons.Count > 0)
+        {
+            boardYesButton ??= choiceButtons[0];
+        }
+
+        if (choiceButtons.Count > 1)
+        {
+            boardNoButton ??= choiceButtons[1];
+        }
+
+        boardLeftButtonText ??= GetButtonLabel(boardLeftButton);
+        boardCenterButtonText ??= GetButtonLabel(boardCenterButton);
+        boardRightButtonText ??= GetButtonLabel(boardRightButton);
+        boardYesButtonText ??= GetButtonLabel(boardYesButton);
+        boardNoButtonText ??= GetButtonLabel(boardNoButton);
+    }
+
+    private static List<Button> GetDirectChildButtons(Transform root)
+    {
+        List<Button> buttons = new();
+        if (root == null)
+        {
+            return buttons;
+        }
+
+        for (int i = 0; i < root.childCount; i++)
+        {
+            Button button = root.GetChild(i).GetComponent<Button>();
+            if (button != null)
+            {
+                buttons.Add(button);
+            }
+        }
+
+        return buttons;
+    }
+
+    private static TextMeshProUGUI GetButtonLabel(Button button)
+    {
+        return button != null ? button.GetComponentInChildren<TextMeshProUGUI>(true) : null;
     }
 
     private BattleUnitUI SetupBattleUnitUI(string objectName)
