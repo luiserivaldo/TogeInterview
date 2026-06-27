@@ -279,7 +279,6 @@ public class TutorialManager : MonoBehaviour
         }
 
         yield return new WaitUntil(AreTutorialButtonsReady);
-        yield return StartCoroutine(WaitForFreshSubmit());
 
         UIManager.Instance.SetBattleButtonsInteractable(false);
         UIManager.Instance.SetCombatLog("Attack is your main damage option. Use it when you want to defeat the enemy.\n\nPress confirm to continue.");

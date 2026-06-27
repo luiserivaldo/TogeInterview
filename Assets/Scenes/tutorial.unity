@@ -1499,11 +1499,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 49504006552336536, guid: dc223639c86a6184fb7006f62300677e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -8.5
+      value: -5.5
       objectReference: {fileID: 0}
     - target: {fileID: 49504006552336536, guid: dc223639c86a6184fb7006f62300677e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 5
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 49504006552336536, guid: dc223639c86a6184fb7006f62300677e, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1652,7 +1652,7 @@ Transform:
   m_GameObject: {fileID: 219087847}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -376.8037, y: -248.85674, z: 0}
+  m_LocalPosition: {x: -374.8037, y: -248.85674, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -62573,7 +62573,7 @@ GameObject:
   - component: {fileID: 900100003}
   - component: {fileID: 900100002}
   m_Layer: 0
-  m_Name: Tutorial-MoveRat
+  m_Name: Tutorial-monsterApproachEvent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -62633,7 +62633,7 @@ GameObject:
   - component: {fileID: 900100013}
   - component: {fileID: 900100012}
   m_Layer: 0
-  m_Name: Tutorial-PreCombat
+  m_Name: Tutorial-combatHintEvent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -62703,7 +62703,7 @@ GameObject:
   - component: {fileID: 900100023}
   - component: {fileID: 900100022}
   m_Layer: 0
-  m_Name: Tutorial-FinishCombat
+  m_Name: Tutorial-outroEvent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -68197,7 +68197,7 @@ GameObject:
   - component: {fileID: 1535455985}
   - component: {fileID: 1535455984}
   m_Layer: 0
-  m_Name: Tutorial-BlacksmithApproach
+  m_Name: Tutorial-introEvent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
