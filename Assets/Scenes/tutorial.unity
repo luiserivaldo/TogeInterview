@@ -1482,6 +1482,9 @@ MonoBehaviour:
   attackButton: {fileID: 0}
   itemButton: {fileID: 0}
   runButton: {fileID: 0}
+  playerMultiTargetIndicatorSprite: {fileID: 2030128313778976242, guid: 197233b199958c17bb474a9ab9e0f0fe, type: 3}
+  interactableDiscoverableIndicatorSprite: {fileID: 1259403999637839662, guid: 62aa474fc3a857f69803cb9ff0f2deb6, type: 3}
+  interactableSelectedIndicatorSprite: {fileID: 5501462207820167518, guid: ec65dda311caa9f0eaaae47cc9ecc8fd, type: 3}
   cutsceneAvatarImage: {fileID: 0}
   cutsceneDialogueText: {fileID: 0}
   yesButton: {fileID: 0}
@@ -59763,7 +59766,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &398428019
 RectTransform:
   m_ObjectHideFlags: 0

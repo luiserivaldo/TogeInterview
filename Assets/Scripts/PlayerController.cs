@@ -396,6 +396,16 @@ public class PlayerController : MonoBehaviour
 
             if (rootObject.TryGetComponent(out ShopClass shop))
             {
+                if (!shop.CanInteract)
+                {
+                    UIManager.Instance?.ApplyIndicatorState(
+                        shop.IndicatorRenderer,
+                        UIManager.InteractIndicatorState.Hidden
+                    );
+
+                    continue;
+                }
+
                 nearbyCandidates.Add(new InteractionCandidate
                 {
                     RootObject = rootObject,

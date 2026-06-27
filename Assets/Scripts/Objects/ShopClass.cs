@@ -3,6 +3,7 @@ using UnityEngine;
 public class ShopClass : MonoBehaviour
 {
     [SerializeField] private SpriteRenderer indicatorRenderer;
+    [SerializeField] private bool disableDuringOpeningTutorial;
 
     public ShopManager.ShopType shopType;
 
@@ -13,8 +14,18 @@ public class ShopClass : MonoBehaviour
         AutoAssignIndicatorRenderer();
     }
 
+    // Disable interaction during tutorial sequence
+    public bool CanInteract =>
+    !disableDuringOpeningTutorial ||
+    !TutorialManager.IsOpeningTutorialActive;
+
     public void TryInteract(PlayerClass player)
     {
+        if (!CanInteract || player == null || ShopManager.Instance == null)
+        {
+            return;
+        }
+
         ShopManager.Instance.TryPurchase(player, shopType);
     }
 
