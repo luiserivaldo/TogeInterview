@@ -117,41 +117,6 @@ public class CutsceneEvent : MonoBehaviour
         UnityEditor.EditorUtility.SetDirty(this);
     }
 
-    public void EditorRemoveStep(int stepIndex, CutsceneManager manager)
-    {
-        if (stepIndex < 0 || stepIndex >= steps.Count)
-        {
-            return;
-        }
-
-        UnityEditor.Undo.RecordObject(this, "Remove Cutscene Step");
-
-        CutsceneStep step = steps[stepIndex];
-        Transform moveTarget = step?.moveTo;
-
-        if (step?.pointer != null)
-        {
-            UnityEditor.Undo.DestroyObjectImmediate(step.pointer.gameObject);
-        }
-
-        if (step?.sceneType == CutsceneStep.SceneType.MoveActor &&
-            moveTarget != null &&
-            moveTarget.TryGetComponent<CutsceneMovePointer>(out _))
-        {
-            UnityEditor.Undo.DestroyObjectImmediate(moveTarget.gameObject);
-        }
-
-        steps.RemoveAt(stepIndex);
-
-        if (manager != null)
-        {
-            BindPointers(manager);
-        }
-
-        RenameChildren();
-        UnityEditor.EditorUtility.SetDirty(this);
-    }
-
     public void EditorEnsureMovePointer(int stepIndex)
     {
         if (stepIndex < 0 || stepIndex >= steps.Count)
