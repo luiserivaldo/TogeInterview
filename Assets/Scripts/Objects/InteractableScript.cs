@@ -8,6 +8,7 @@ public class InteractableObject : MonoBehaviour
         Sign,
         NPC
     }
+
     public enum SignType
     {
         None,
@@ -16,13 +17,48 @@ public class InteractableObject : MonoBehaviour
         BountyBoardSign,
         TutorialSign,
     }
+
+    [SerializeField] private SpriteRenderer indicatorRenderer;
+
     public SignType signType = SignType.None;
     public InteractableType objectType;
 
-
-    [TextArea(2, 5)] // For nicer editing in Inspector
+    [TextArea(2, 5)]
     public string additionalMessage = "";
-    public bool overrideMessage = false; // Override default message
+    public bool overrideMessage = false;
+
+    public SpriteRenderer IndicatorRenderer => indicatorRenderer;
+
+    private void Awake()
+    {
+        AutoAssignIndicatorRenderer();
+    }
+
+    public virtual void TryInteract(PlayerClass player)
+    {
+        GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
+        if (gameManager != null)
+        {
+            gameManager.InteractWithObject(this);
+        }
+
+        if (GameManager.IsGameplayLocked || UIManager.Instance == null)
+        {
+            return;
+        }
+
+        if (objectType != InteractableType.Sign)
+        {
+            return;
+        }
+
+        UIManager.Instance.ShowMessage(GetSignMessage());
+
+        if (signType == SignType.BountyBoardSign)
+        {
+            UIManager.Instance.ShowBountyBoard();
+        }
+    }
 
     public string GetSignMessage()
     {
@@ -55,10 +91,14 @@ public class InteractableObject : MonoBehaviour
         }
 
         if (overrideMessage && !string.IsNullOrWhiteSpace(additionalMessage))
+        {
             return additionalMessage;
+        }
 
         if (!string.IsNullOrWhiteSpace(additionalMessage))
+        {
             return baseMessage + "\n" + additionalMessage;
+        }
 
         return baseMessage;
     }
@@ -79,7 +119,7 @@ public class InteractableObject : MonoBehaviour
     {
         return ShopManager.Instance.GetCurrentCost(type);
     }
-    
+
     private string GetBountyBoardMessage()
     {
         return
@@ -91,6 +131,27 @@ public class InteractableObject : MonoBehaviour
             "Rat2      2    5    6 GP\n" +
             "Crab      1    5    5 GP\n" +
             "Ghost     4    2    8 GP\n" +
-            "Cyclops  10   20   50 GP\n" ;
+            "Cyclops  10   20   50 GP\n";
     }
+
+    private void AutoAssignIndicatorRenderer()
+    {
+        if (indicatorRenderer != null)
+        {
+            return;
+        }
+
+        Transform indicator = transform.Find("SelectIcon");
+        if (indicator != null)
+        {
+            indicatorRenderer = indicator.GetComponent<SpriteRenderer>();
+        }
+    }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        AutoAssignIndicatorRenderer();
+    }
+#endif
 }

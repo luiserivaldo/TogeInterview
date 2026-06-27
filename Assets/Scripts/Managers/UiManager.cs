@@ -9,6 +9,14 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    public enum InteractIndicatorState
+    {
+        Hidden,
+        PlayerMultiTarget,
+        Discoverable,
+        Selected,
+    }
+
     private const string HeroDisplayName = "Hero";
     private const int MaxCombatLogLines = 3;
 
@@ -41,6 +49,11 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button attackButton;
     [SerializeField] private Button itemButton;
     [SerializeField] private Button runButton;
+
+    [Header("Interaction Indicators")]
+    [SerializeField] private Sprite playerMultiTargetIndicatorSprite;
+    [SerializeField] private Sprite interactableDiscoverableIndicatorSprite;
+    [SerializeField] private Sprite interactableSelectedIndicatorSprite;
 
     [Header("Cutscene Elements")]
     [SerializeField] private Image cutsceneAvatarImage;
@@ -448,6 +461,44 @@ public class UIManager : MonoBehaviour
         {
             button.onClick.AddListener(action);
         }
+    }
+
+    public void ApplyIndicatorState(SpriteRenderer indicator, InteractIndicatorState state)
+    {
+        if (indicator == null)
+        {
+            return;
+        }
+
+        switch (state)
+        {
+            case InteractIndicatorState.Hidden:
+                indicator.gameObject.SetActive(false);
+                break;
+
+            case InteractIndicatorState.PlayerMultiTarget:
+                SetIndicatorSprite(indicator, playerMultiTargetIndicatorSprite);
+                break;
+
+            case InteractIndicatorState.Discoverable:
+                SetIndicatorSprite(indicator, interactableDiscoverableIndicatorSprite);
+                break;
+
+            case InteractIndicatorState.Selected:
+                SetIndicatorSprite(indicator, interactableSelectedIndicatorSprite);
+                break;
+        }
+    }
+
+    private static void SetIndicatorSprite(SpriteRenderer indicator, Sprite sprite)
+    {
+        if (indicator == null)
+        {
+            return;
+        }
+
+        indicator.sprite = sprite;
+        indicator.gameObject.SetActive(sprite != null);
     }
 
     private void AutoWireSceneReferences()
