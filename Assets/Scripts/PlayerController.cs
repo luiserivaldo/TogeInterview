@@ -92,7 +92,12 @@ public class PlayerController : MonoBehaviour
         {
             ExitSelectionMode(false);
             RefreshNearbyInteractables(forceClear: true);
-            CancelMovementAndSnap();
+
+            if (gridMovement.IsMoving || isBumping)
+            {
+                CancelMovementAndSnap();
+            }
+
             return;
         }
 
@@ -313,24 +318,15 @@ public class PlayerController : MonoBehaviour
 
     private int FindBestSelectionTarget(Vector3 anchorPosition, Vector2 direction)
     {
-        int bestObjectIndex = FindBestSelectionObject(anchorPosition, direction);
-        if (bestObjectIndex >= 0)
-        {
-            return bestObjectIndex;
-        }
-
-        return FindBestSelectionCancel(anchorPosition, direction);
-    }
-
-    private int FindBestSelectionObject(Vector3 anchorPosition, Vector2 direction)
-    {
         Vector2 normalizedDirection = direction.normalized;
         float bestScore = float.NegativeInfinity;
         int bestIndex = -1;
 
-        for (int i = 0; i < nearbyCandidates.Count; i++)
+        for (int i = 0; i <= nearbyCandidates.Count; i++)
         {
-            Vector3 optionPosition = nearbyCandidates[i].Position;
+            Vector3 optionPosition = i < nearbyCandidates.Count
+                ? nearbyCandidates[i].Position
+                : transform.position;
             Vector2 offset = new Vector2(
                 optionPosition.x - anchorPosition.x,
                 optionPosition.y - anchorPosition.y
@@ -350,7 +346,8 @@ public class PlayerController : MonoBehaviour
 
             float distancePenalty = offset.sqrMagnitude;
             float lateralPenalty = Mathf.Abs(Vector3.Cross(normalizedDirection, offsetDirection).z);
-            float score = directionalAlignment * 100f - distancePenalty * 10f - lateralPenalty;
+            float cancelBias = i == nearbyCandidates.Count ? -0.25f : 0f;
+            float score = directionalAlignment * 100f - distancePenalty * 10f - lateralPenalty + cancelBias;
 
             if (score > bestScore)
             {
@@ -360,23 +357,6 @@ public class PlayerController : MonoBehaviour
         }
 
         return bestIndex;
-    }
-
-    private int FindBestSelectionCancel(Vector3 anchorPosition, Vector2 direction)
-    {
-        Vector2 normalizedDirection = direction.normalized;
-        Vector2 offset = new Vector2(
-            transform.position.x - anchorPosition.x,
-            transform.position.y - anchorPosition.y
-        );
-
-        if (offset.sqrMagnitude <= 0.0001f)
-        {
-            return -1;
-        }
-
-        float directionalAlignment = Vector2.Dot(normalizedDirection, offset.normalized);
-        return directionalAlignment > 0.15f ? nearbyCandidates.Count : -1;
     }
 
     private Vector3 GetSelectionAnchorPosition()
@@ -522,7 +502,7 @@ public class PlayerController : MonoBehaviour
             case InteractionSelectionState.SingleCandidate:
                 if (nearbyCandidates.Count > 0)
                 {
-                    UIManager.Instance.ApplyIndicatorState(nearbyCandidates[0].Indicator, UIManager.InteractIndicatorState.Discoverable);
+                    UIManager.Instance.ApplyIndicatorState(nearbyCandidates[0].Indicator, UIManager.InteractIndicatorState.Selected);
                 }
                 break;
 
@@ -550,6 +530,10 @@ public class PlayerController : MonoBehaviour
                 if (selectedCandidateIndex >= nearbyCandidates.Count)
                 {
                     UIManager.Instance.ApplyIndicatorState(playerIndicatorRenderer, UIManager.InteractIndicatorState.Cancel);
+                }
+                else
+                {
+                    UIManager.Instance.ApplyIndicatorState(playerIndicatorRenderer, UIManager.InteractIndicatorState.PlayerMultiTarget);
                 }
                 break;
         }
