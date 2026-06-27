@@ -35,9 +35,12 @@ public class TutorialManager : MonoBehaviour
     private BattleManager.BattleResult battleResult;
     private bool introObserved;
     private bool started;
+    public static bool IsOpeningTutorialActive { get; private set; }
 
     private void OnEnable()
     {
+        IsOpeningTutorialActive = true;
+
         battleManager = BattleManager.Instance;
         if (battleManager != null)
         {
@@ -51,6 +54,8 @@ public class TutorialManager : MonoBehaviour
         {
             battleManager.BattleEnded -= HandleBattleEnded;
         }
+
+        IsOpeningTutorialActive = false;
     }
 
     private IEnumerator Start()
@@ -102,6 +107,7 @@ public class TutorialManager : MonoBehaviour
         }
 
         yield return StartCoroutine(PlayExternalEvent(outroEvent));
+        IsOpeningTutorialActive = false;
         RestoreMonsters();
     }
 

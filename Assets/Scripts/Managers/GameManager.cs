@@ -56,7 +56,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void InteractWithObject(InteractableObject obj)
+    public void InteractWithObject(InteractableObject obj, PlayerClass player = null)
     {
         if (IsGameplayLocked || obj == null)
         {
@@ -66,14 +66,20 @@ public class GameManager : MonoBehaviour
         switch (obj.objectType)
         {
             case InteractableObject.InteractableType.Fountain:
-                HandleFountain(obj);
+                HandleFountain(player);
+                break;
+
+            case InteractableObject.InteractableType.ShopAtk:
+                HandleShop(player, ShopManager.ShopType.ATK);
+                break;
+
+            case InteractableObject.InteractableType.ShopDef:
+                HandleShop(player, ShopManager.ShopType.DEF);
                 break;
 
             case InteractableObject.InteractableType.Sign:
-                HandleSign(obj);
-                break;
-
             case InteractableObject.InteractableType.NPC:
+                HandleSign(obj);
                 break;
         }
     }
@@ -85,9 +91,19 @@ public class GameManager : MonoBehaviour
             : fountainCosts[fountainCosts.Count - 1];
     }
 
-    private void HandleFountain(InteractableObject fountain)
+    private void HandleFountain(PlayerClass player)
     {
-        PlayerClass player = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerClass>();
+        if (player == null)
+        {
+            GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+            player = playerObject != null ? playerObject.GetComponent<PlayerClass>() : null;
+        }
+
+        if (player == null)
+        {
+            return;
+        }
+
         int currentCost = GetCurrentFountainCost();
 
         if (player.money >= currentCost)
@@ -102,13 +118,21 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("Not enough gold to use the fountain.");
         }
+    }
 
-        player.GetComponent<PlayerController>().BumpBack();
+    private void HandleShop(PlayerClass player, ShopManager.ShopType type)
+    {
+        if (player == null || ShopManager.Instance == null)
+        {
+            return;
+        }
+
+        ShopManager.Instance.TryPurchase(player, type);
     }
 
     private void HandleSign(InteractableObject sign)
     {
-        Debug.Log("This is a Sign.");
+        Debug.Log($"Interacted with {sign.name}.");
     }
 
     public void GameOver()

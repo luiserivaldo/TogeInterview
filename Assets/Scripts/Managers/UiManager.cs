@@ -9,6 +9,15 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    public enum InteractIndicatorState
+    {
+        Hidden,
+        PlayerMultiTarget,
+        Discoverable,
+        Selected,
+        Cancel,
+    }
+
     private const string HeroDisplayName = "Hero";
     private const int MaxCombatLogLines = 3;
 
@@ -41,6 +50,16 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button attackButton;
     [SerializeField] private Button itemButton;
     [SerializeField] private Button runButton;
+
+    [Header("Interaction Indicators")]
+    [SerializeField] private Sprite playerMultiTargetIndicatorSprite;
+    [SerializeField] private Sprite interactableDiscoverableIndicatorSprite;
+    [SerializeField] private Sprite interactableSelectedIndicatorSprite;
+    [SerializeField] private Sprite cancelIndicatorSprite;
+    [SerializeField] private Color playerMultiTargetIndicatorColor = Color.white;
+    [SerializeField] private Color interactableDiscoverableIndicatorColor = new(0.4f, 0.4f, 0.4f, 0.9f);
+    [SerializeField] private Color interactableSelectedIndicatorColor = Color.white;
+    [SerializeField] private Color cancelIndicatorColor = new(1f, 0.82f, 0.82f, 1f);
 
     [Header("Cutscene Elements")]
     [SerializeField] private Image cutsceneAvatarImage;
@@ -448,6 +467,49 @@ public class UIManager : MonoBehaviour
         {
             button.onClick.AddListener(action);
         }
+    }
+
+    public void ApplyIndicatorState(SpriteRenderer indicator, InteractIndicatorState state)
+    {
+        if (indicator == null)
+        {
+            return;
+        }
+
+        switch (state)
+        {
+            case InteractIndicatorState.Hidden:
+                indicator.gameObject.SetActive(false);
+                break;
+
+            case InteractIndicatorState.PlayerMultiTarget:
+                SetIndicatorVisual(indicator, playerMultiTargetIndicatorSprite, playerMultiTargetIndicatorColor);
+                break;
+
+            case InteractIndicatorState.Discoverable:
+                SetIndicatorVisual(indicator, interactableDiscoverableIndicatorSprite, interactableDiscoverableIndicatorColor);
+                break;
+
+            case InteractIndicatorState.Selected:
+                SetIndicatorVisual(indicator, interactableSelectedIndicatorSprite, interactableSelectedIndicatorColor);
+                break;
+
+            case InteractIndicatorState.Cancel:
+                SetIndicatorVisual(indicator, cancelIndicatorSprite != null ? cancelIndicatorSprite : playerMultiTargetIndicatorSprite, cancelIndicatorColor);
+                break;
+        }
+    }
+
+    private static void SetIndicatorVisual(SpriteRenderer indicator, Sprite sprite, Color color)
+    {
+        if (indicator == null)
+        {
+            return;
+        }
+
+        indicator.sprite = sprite;
+        indicator.color = color;
+        indicator.gameObject.SetActive(sprite != null);
     }
 
     private void AutoWireSceneReferences()

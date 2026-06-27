@@ -1,11 +1,22 @@
 using UnityEngine;
 
-public class ShopClass : MonoBehaviour
+public class ShopClass : InteractableObject
 {
-    public ShopManager.ShopType shopType;
+    [SerializeField] private ShopManager.ShopType shopType;
 
-    public void TryInteract(PlayerClass player)
+    public ShopManager.ShopType ShopType => shopType;
+    public override bool CanInteract => !allowDuringOpeningTutorial || !TutorialManager.IsOpeningTutorialActive;
+
+    protected override string DefaultInteractionMessage => shopType == ShopManager.ShopType.ATK
+        ? $"Sharpen your weapon? +1 ATK for {GetShopCost(ShopManager.ShopType.ATK)} GP."
+        : $"Reinforce your armor? +5 DEF for {GetShopCost(ShopManager.ShopType.DEF)} GP.";
+
+#if UNITY_EDITOR
+    private void OnValidate()
     {
-        ShopManager.Instance.TryPurchase(player, shopType);
+        objectType = shopType == ShopManager.ShopType.ATK
+            ? InteractableType.ShopAtk
+            : InteractableType.ShopDef;
     }
+#endif
 }

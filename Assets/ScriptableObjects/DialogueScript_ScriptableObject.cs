@@ -7,6 +7,23 @@ public class DialogueScript_ScriptableObject : ScriptableObject
     [SerializeField] private List<DialogueCommandData> commands = new();
 
     public IReadOnlyList<DialogueCommandData> Commands => commands;
+
+    public static DialogueScript_ScriptableObject CreateRuntimeSingleMessage(string text, Sprite image = null, bool animateText = true)
+    {
+        DialogueScript_ScriptableObject runtimeScript = CreateInstance<DialogueScript_ScriptableObject>();
+        runtimeScript.commands = new List<DialogueCommandData>
+        {
+            new DialogueCommandData
+            {
+                commandType = DialogueCommandType.ShowText,
+                text = text ?? string.Empty,
+                image = image,
+                animateText = animateText,
+            }
+        };
+
+        return runtimeScript;
+    }
 }
 
 public enum DialogueCommandType

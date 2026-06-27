@@ -72,6 +72,19 @@ public class DialogueManager : MonoBehaviour
         dialogueRoutine = StartCoroutine(RunScriptRoutine(script, fallbackImage, onComplete));
     }
 
+    public void StartMessage(string text, Sprite fallbackImage = null, Action onComplete = null, bool animateText = true)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            onComplete?.Invoke();
+            return;
+        }
+
+        DialogueScript_ScriptableObject runtimeScript =
+            DialogueScript_ScriptableObject.CreateRuntimeSingleMessage(text, fallbackImage, animateText);
+        StartScript(runtimeScript, fallbackImage, onComplete);
+    }
+
     public void StopDialogue(bool unlockGameplay = true)
     {
         if (dialogueRoutine != null)
