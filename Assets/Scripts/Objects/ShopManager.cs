@@ -1,11 +1,9 @@
 using UnityEngine;
-using System.Collections;
 
 public class ShopManager : MonoBehaviour
 {
     public static ShopManager Instance;
 
-    // Ascending costs for each purchase
     public int[] upgradeCosts = { 5, 10, 20, 40, 80, 150 };
     public int atkUpgradeIndex = 0;
     public int defUpgradeIndex = 0;

@@ -1753,12 +1753,12 @@ MonoBehaviour:
   bountyBoardPanel: {fileID: 1260865085}
   messageText: {fileID: 1517094168}
   gameOverPanel: {fileID: 1919479459}
-  heroUI: {fileID: 0}
-  enemyUI: {fileID: 0}
-  combatLogText: {fileID: 0}
-  attackButton: {fileID: 0}
-  itemButton: {fileID: 0}
-  runButton: {fileID: 0}
+  heroUI: {fileID: 595295823}
+  enemyUI: {fileID: 582471478}
+  combatLogText: {fileID: 988952146}
+  attackButton: {fileID: 1936436851}
+  itemButton: {fileID: 1802108549}
+  runButton: {fileID: 1699808355}
   playerMultiTargetIndicatorSprite: {fileID: 2030128313778976242, guid: 197233b199958c17bb474a9ab9e0f0fe, type: 3}
   interactableDiscoverableIndicatorSprite: {fileID: 1259403999637839662, guid: 62aa474fc3a857f69803cb9ff0f2deb6, type: 3}
   interactableSelectedIndicatorSprite: {fileID: 5501462207820167518, guid: ec65dda311caa9f0eaaae47cc9ecc8fd, type: 3}
@@ -1767,27 +1767,18 @@ MonoBehaviour:
   interactableDiscoverableIndicatorColor: {r: 0.4, g: 0.4, b: 0.4, a: 0.9}
   interactableSelectedIndicatorColor: {r: 1, g: 1, b: 1, a: 1}
   cancelIndicatorColor: {r: 1, g: 0.82, b: 0.82, a: 1}
-  cutsceneAvatarImage: {fileID: 0}
-  cutsceneDialogueText: {fileID: 0}
-  yesButton: {fileID: 0}
-  noButton: {fileID: 0}
-  yesButtonText: {fileID: 0}
-  noButtonText: {fileID: 0}
-  dialogueEffectAnchor: {fileID: 0}
+  cutsceneAvatarImage: {fileID: 435916069}
+  cutsceneDialogueText: {fileID: 751908178}
+  yesButton: {fileID: 614145186}
+  noButton: {fileID: 155735272}
+  yesButtonText: {fileID: 21348975}
+  noButtonText: {fileID: 944932770}
   boardUIRoot: {fileID: 702248821}
   boardDialogueText: {fileID: 137073517}
-  boardActionGrid: {fileID: 0}
-  boardActionGridTwo: {fileID: 0}
   boardLeftButton: {fileID: 1556806490}
-  boardCenterButton: {fileID: 0}
   boardRightButton: {fileID: 1964835514}
-  boardYesButton: {fileID: 1556806490}
-  boardNoButton: {fileID: 1964835514}
   boardLeftButtonText: {fileID: 1012957198}
-  boardCenterButtonText: {fileID: 0}
   boardRightButtonText: {fileID: 29165492}
-  boardYesButtonText: {fileID: 1012957198}
-  boardNoButtonText: {fileID: 29165492}
 --- !u!1001 &180666483
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -61027,8 +61018,8 @@ Camera:
     serializedVersion: 2
     x: 0
     y: 0
-    width: 0.5802357
-    height: 0.8711434
+    width: 1
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 34

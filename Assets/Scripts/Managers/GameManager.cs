@@ -80,7 +80,6 @@ public class GameManager : MonoBehaviour
 
             case InteractableObject.InteractableType.Sign:
             case InteractableObject.InteractableType.NPC:
-                HandleSign(obj);
                 break;
         }
     }
@@ -228,11 +227,6 @@ public class GameManager : MonoBehaviour
         }
 
         return ShopManager.Instance.TryPurchase(player, type);
-    }
-
-    private void HandleSign(InteractableObject sign)
-    {
-        Debug.Log($"Interacted with {sign.name}.");
     }
 
     public void GameOver()

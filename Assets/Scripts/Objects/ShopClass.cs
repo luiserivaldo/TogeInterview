@@ -12,8 +12,9 @@ public class ShopClass : InteractableObject
         : $"Reinforce your armor? +5 DEF for {GetShopCost(ShopManager.ShopType.DEF)} GP.";
 
 #if UNITY_EDITOR
-    private void OnValidate()
+    protected override void OnValidate()
     {
+        base.OnValidate();
         objectType = shopType == ShopManager.ShopType.ATK
             ? InteractableType.ShopAtk
             : InteractableType.ShopDef;

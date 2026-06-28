@@ -294,7 +294,7 @@ public class DialogueManager : MonoBehaviour
             yield break;
         }
 
-        Transform effectAnchor = UIManager.Instance.GetDialogueEffectAnchor();
+        Transform effectAnchor = UIManager.Instance != null ? UIManager.Instance.transform : null;
         activeParticleInstance = effectAnchor != null
             ? Instantiate(command.particlePrefab, effectAnchor, false)
             : Instantiate(command.particlePrefab);
