@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -68,7 +69,21 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button noButton;
     [SerializeField] private TextMeshProUGUI yesButtonText;
     [SerializeField] private TextMeshProUGUI noButtonText;
-    [SerializeField] private Transform dialogueEffectAnchor;
+
+    [Header("Board Elements")]
+    [SerializeField] private GameObject boardUIRoot;
+    [SerializeField] private TextMeshProUGUI boardDialogueText;
+    [SerializeField] private Button boardLeftButton;
+    [SerializeField] private Button boardRightButton;
+    [SerializeField] private TextMeshProUGUI boardLeftButtonText;
+    [SerializeField] private TextMeshProUGUI boardRightButtonText;
+
+    private readonly List<string> activeBoardPages = new();
+    private int activeBoardPageIndex;
+    private string boardPreviousLabel = "Previous";
+    private string boardNextLabel = "Next";
+    private string boardCloseLabel = "Close";
+    private Action boardCloseAction;
 
     private void Awake()
     {
@@ -89,7 +104,7 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        player = Object.FindFirstObjectByType<PlayerClass>();
+        player = UnityEngine.Object.FindFirstObjectByType<PlayerClass>();
         UpdateUI();
     }
 
@@ -152,6 +167,11 @@ public class UIManager : MonoBehaviour
         {
             cutsceneUIRoot.SetActive(false);
         }
+
+        if (boardUIRoot != null)
+        {
+            boardUIRoot.SetActive(false);
+        }
     }
 
     public void ShowBattleUI()
@@ -170,6 +190,11 @@ public class UIManager : MonoBehaviour
         {
             cutsceneUIRoot.SetActive(false);
         }
+
+        if (boardUIRoot != null)
+        {
+            boardUIRoot.SetActive(false);
+        }
     }
 
     public void ShowCutsceneUI()
@@ -187,6 +212,11 @@ public class UIManager : MonoBehaviour
         if (cutsceneUIRoot != null)
         {
             cutsceneUIRoot.SetActive(true);
+        }
+
+        if (boardUIRoot != null)
+        {
+            boardUIRoot.SetActive(false);
         }
     }
 
@@ -292,14 +322,254 @@ public class UIManager : MonoBehaviour
         BindCutsceneChoiceHandlers(yesAction, noAction);
     }
 
+
+    public bool IsBoardUiAvailable =>
+        boardUIRoot != null &&
+        boardDialogueText != null &&
+        boardLeftButton != null &&
+        boardRightButton != null;
+
+    public void ShowBoardPages(IReadOnlyList<string> pages, Action onClosed = null, string previousLabel = "Previous", string nextLabel = "Next", string closeLabel = "Close")
+    {
+        activeBoardPages.Clear();
+        if (pages != null)
+        {
+            for (int i = 0; i < pages.Count; i++)
+            {
+                if (!string.IsNullOrWhiteSpace(pages[i]))
+                {
+                    activeBoardPages.Add(pages[i]);
+                }
+            }
+        }
+
+        if (activeBoardPages.Count == 0)
+        {
+            activeBoardPages.Add(string.Empty);
+        }
+
+        boardPreviousLabel = string.IsNullOrWhiteSpace(previousLabel) ? "Previous" : previousLabel;
+        boardNextLabel = string.IsNullOrWhiteSpace(nextLabel) ? "Next" : nextLabel;
+        boardCloseLabel = string.IsNullOrWhiteSpace(closeLabel) ? "Close" : closeLabel;
+        boardCloseAction = onClosed;
+        activeBoardPageIndex = 0;
+
+        ShowBoardRoot();
+        SetBoardChoiceButtonsVisible(false);
+        BindButton(boardLeftButton, HandleBoardPreviousPressed, true);
+        BindButton(boardRightButton, HandleBoardAdvancePressed, true);
+        RefreshBoardPage();
+    }
+
+    public void ShowBoardChoice(string text, UnityAction leftAction, UnityAction rightAction, string leftLabel = "Left", string rightLabel = "Right")
+    {
+        boardCloseAction = null;
+        activeBoardPages.Clear();
+        activeBoardPageIndex = 0;
+
+        ShowBoardRoot();
+
+        if (boardDialogueText != null)
+        {
+            boardDialogueText.text = text ?? string.Empty;
+        }
+
+        SetBoardChoiceButtonsVisible(true);
+
+        if (boardLeftButtonText != null)
+        {
+            boardLeftButtonText.text = string.IsNullOrWhiteSpace(leftLabel) ? "Left" : leftLabel;
+        }
+
+        if (boardRightButtonText != null)
+        {
+            boardRightButtonText.text = string.IsNullOrWhiteSpace(rightLabel) ? "Right" : rightLabel;
+        }
+
+        BindButton(boardLeftButton, leftAction, true);
+        BindButton(boardRightButton, rightAction, true);
+        ConfigureBoardChoiceNavigation();
+        SelectBoardChoiceDefaultAction();
+    }
+
+    public void HideBoardUI()
+    {
+        activeBoardPages.Clear();
+        activeBoardPageIndex = 0;
+        boardCloseAction = null;
+
+        BindButton(boardLeftButton, null, true);
+        BindButton(boardRightButton, null, true);
+        SetBoardChoiceButtonsVisible(false);
+
+        if (boardDialogueText != null)
+        {
+            boardDialogueText.text = string.Empty;
+        }
+
+        if (boardUIRoot != null)
+        {
+            boardUIRoot.SetActive(false);
+        }
+
+        ClearSelectedUI();
+    }
+
+    private void ShowBoardRoot()
+    {
+        HideMessage();
+        HideBountyBoard();
+        HideCutsceneUI();
+
+        if (overworldUIRoot != null)
+        {
+            overworldUIRoot.SetActive(true);
+        }
+
+        if (battleUIRoot != null)
+        {
+            battleUIRoot.SetActive(false);
+        }
+
+        if (boardUIRoot != null)
+        {
+            boardUIRoot.SetActive(true);
+        }
+    }
+
+    private void HandleBoardPreviousPressed()
+    {
+        if (activeBoardPageIndex <= 0)
+        {
+            return;
+        }
+
+        activeBoardPageIndex--;
+        RefreshBoardPage();
+    }
+
+    private void HandleBoardAdvancePressed()
+    {
+        if (activeBoardPageIndex < activeBoardPages.Count - 1)
+        {
+            activeBoardPageIndex++;
+            RefreshBoardPage();
+            return;
+        }
+
+        Action closeAction = boardCloseAction;
+        HideBoardUI();
+        closeAction?.Invoke();
+    }
+
+    private void RefreshBoardPage()
+    {
+        if (boardDialogueText != null)
+        {
+            string currentPage = activeBoardPageIndex >= 0 && activeBoardPageIndex < activeBoardPages.Count
+                ? activeBoardPages[activeBoardPageIndex]
+                : string.Empty;
+            boardDialogueText.text = currentPage;
+        }
+
+        bool canGoBack = activeBoardPageIndex > 0;
+        bool canAdvance = activeBoardPages.Count > 0;
+
+        if (boardLeftButton != null)
+        {
+            boardLeftButton.gameObject.SetActive(canGoBack);
+            boardLeftButton.interactable = canGoBack;
+        }
+
+        if (boardRightButton != null)
+        {
+            boardRightButton.gameObject.SetActive(canAdvance);
+            boardRightButton.interactable = canAdvance;
+        }
+
+        if (boardLeftButtonText != null)
+        {
+            boardLeftButtonText.text = boardPreviousLabel;
+        }
+
+        if (boardRightButtonText != null)
+        {
+            bool isLastPage = activeBoardPageIndex >= activeBoardPages.Count - 1;
+            boardRightButtonText.text = isLastPage ? boardCloseLabel : boardNextLabel;
+        }
+
+        ConfigureBoardPageNavigation();
+        SelectBoardPageDefaultAction();
+    }
+
+    private void SelectBoardPageDefaultAction()
+    {
+        if (boardRightButton != null && boardRightButton.gameObject.activeInHierarchy && boardRightButton.interactable)
+        {
+            SelectBattleAction(boardRightButton);
+            return;
+        }
+
+        if (boardLeftButton != null && boardLeftButton.gameObject.activeInHierarchy && boardLeftButton.interactable)
+        {
+            SelectBattleAction(boardLeftButton);
+            return;
+        }
+
+        ClearSelectedUI();
+    }
+
+    private void SelectBoardChoiceDefaultAction()
+    {
+        if (boardLeftButton != null && boardLeftButton.gameObject.activeInHierarchy && boardLeftButton.interactable)
+        {
+            SelectBattleAction(boardLeftButton);
+            return;
+        }
+
+        if (boardRightButton != null && boardRightButton.gameObject.activeInHierarchy && boardRightButton.interactable)
+        {
+            SelectBattleAction(boardRightButton);
+            return;
+        }
+
+        ClearSelectedUI();
+    }
+
+    private void ConfigureBoardPageNavigation()
+    {
+        ConfigureHorizontalNavigation(boardLeftButton, boardRightButton);
+    }
+
+    private void ConfigureBoardChoiceNavigation()
+    {
+        ConfigureHorizontalNavigation(boardLeftButton, boardRightButton);
+    }
+
+    private static void ConfigureHorizontalNavigation(Button leftButton, Button rightButton)
+    {
+        if (leftButton != null)
+        {
+            Navigation leftNavigation = leftButton.navigation;
+            leftNavigation.mode = Navigation.Mode.Explicit;
+            leftNavigation.selectOnLeft = rightButton != null && rightButton.gameObject.activeInHierarchy ? rightButton : leftButton;
+            leftNavigation.selectOnRight = rightButton != null && rightButton.gameObject.activeInHierarchy ? rightButton : leftButton;
+            leftButton.navigation = leftNavigation;
+        }
+
+        if (rightButton != null)
+        {
+            Navigation rightNavigation = rightButton.navigation;
+            rightNavigation.mode = Navigation.Mode.Explicit;
+            rightNavigation.selectOnLeft = leftButton != null && leftButton.gameObject.activeInHierarchy ? leftButton : rightButton;
+            rightNavigation.selectOnRight = leftButton != null && leftButton.gameObject.activeInHierarchy ? leftButton : rightButton;
+            rightButton.navigation = rightNavigation;
+        }
+    }
+
     public void SelectDialogueDefaultAction()
     {
         SelectCutsceneDefaultAction();
-    }
-
-    public Transform GetDialogueEffectAnchor()
-    {
-        return dialogueEffectAnchor != null ? dialogueEffectAnchor : cutsceneUIRoot != null ? cutsceneUIRoot.transform : null;
     }
 
     public void SelectBattleDefaultAction()
@@ -313,11 +583,6 @@ public class UIManager : MonoBehaviour
     public void SelectAttackAction()
     {
         SelectBattleAction(attackButton);
-    }
-
-    public void SelectItemAction()
-    {
-        SelectBattleAction(itemButton);
     }
 
     public void BindBattle(PlayerClass playerUnit, MonsterClass monsterUnit, bool isPlayerTurn = true, int heroMaxHp = -1)
@@ -373,7 +638,7 @@ public class UIManager : MonoBehaviour
 
         if (itemButton != null)
         {
-            itemButton.interactable = enabled;
+            itemButton.interactable = false;
         }
 
         if (runButton != null)
@@ -537,9 +802,83 @@ public class UIManager : MonoBehaviour
             noButton ??= FindComponentInChildren<Button>(cutsceneUIRoot.transform, "NoButton");
             yesButtonText ??= yesButton != null ? yesButton.GetComponentInChildren<TextMeshProUGUI>(true) : null;
             noButtonText ??= noButton != null ? noButton.GetComponentInChildren<TextMeshProUGUI>(true) : null;
-            dialogueEffectAnchor ??= cutsceneUIRoot.transform;
             ConfigureCutsceneNavigation();
         }
+
+        AutoWireBoardUi();
+    }
+
+    private void AutoWireBoardUi()
+    {
+        boardUIRoot ??= FindSceneObject("BoardUI");
+
+        if (boardUIRoot == null)
+        {
+            boardLeftButton ??= FindSceneObject("LeftButton")?.GetComponent<Button>();
+            boardRightButton ??= FindSceneObject("RightButton")?.GetComponent<Button>();
+            boardUIRoot = ResolveBoardUiRoot();
+        }
+
+        if (boardUIRoot == null)
+        {
+            return;
+        }
+
+        boardDialogueText = ResolveBoardDialogueText();
+        boardLeftButton = ResolveBoardButton(boardLeftButton, "LeftButton");
+        boardRightButton = ResolveBoardButton(boardRightButton, "RightButton");
+
+        AssignBoardButtons();
+        HideBoardUI();
+    }
+
+    private TextMeshProUGUI ResolveBoardDialogueText()
+    {
+        if (boardDialogueText != null && boardDialogueText.transform.IsChildOf(boardUIRoot.transform))
+        {
+            return boardDialogueText;
+        }
+
+        return FindComponentInChildren<TextMeshProUGUI>(boardUIRoot.transform, "DialogueTextBox");
+    }
+
+    private Button ResolveBoardButton(Button currentButton, string buttonName)
+    {
+        if (currentButton != null && currentButton.transform.IsChildOf(boardUIRoot.transform))
+        {
+            return currentButton;
+        }
+
+        Transform match = FindChildRecursive(boardUIRoot.transform, buttonName);
+        return match != null ? match.GetComponent<Button>() : currentButton;
+    }
+
+    private GameObject ResolveBoardUiRoot()
+    {
+        Transform primaryAnchor = boardLeftButton != null
+            ? boardLeftButton.transform
+            : boardRightButton != null
+                ? boardRightButton.transform
+                : null;
+
+        if (primaryAnchor == null)
+        {
+            return null;
+        }
+
+        for (Transform current = primaryAnchor; current != null; current = current.parent)
+        {
+            bool hasLeftButton = FindChildRecursive(current, "LeftButton") != null;
+            bool hasRightButton = FindChildRecursive(current, "RightButton") != null;
+            bool hasDialogue = FindChildRecursive(current, "DialogueTextBox") != null;
+
+            if (hasDialogue && hasLeftButton && hasRightButton)
+            {
+                return current.gameObject;
+            }
+        }
+
+        return null;
     }
 
     private void ConfigureCutsceneNavigation()
@@ -560,6 +899,34 @@ public class UIManager : MonoBehaviour
         noNavigation.selectOnLeft = yesButton;
         noNavigation.selectOnRight = yesButton;
         noButton.navigation = noNavigation;
+    }
+
+
+    private void AssignBoardButtons()
+    {
+        boardLeftButtonText ??= GetButtonLabel(boardLeftButton);
+        boardRightButtonText ??= GetButtonLabel(boardRightButton);
+    }
+
+    private static TextMeshProUGUI GetButtonLabel(Button button)
+    {
+        return button != null ? button.GetComponentInChildren<TextMeshProUGUI>(true) : null;
+    }
+
+
+    private void SetBoardChoiceButtonsVisible(bool visible)
+    {
+        if (boardLeftButton != null)
+        {
+            boardLeftButton.gameObject.SetActive(visible);
+            boardLeftButton.interactable = visible;
+        }
+
+        if (boardRightButton != null)
+        {
+            boardRightButton.gameObject.SetActive(visible);
+            boardRightButton.interactable = visible;
+        }
     }
 
     private BattleUnitUI SetupBattleUnitUI(string objectName)

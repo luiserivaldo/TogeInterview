@@ -37,14 +37,14 @@ public class InteractableObject : MonoBehaviour
 
     protected virtual string DefaultInteractionMessage => string.Empty;
 
-    private void Awake()
+    protected virtual void Awake()
     {
         AutoAssignIndicatorRenderer();
     }
 
     public virtual bool CanInteract =>
-    !TutorialManager.IsOpeningTutorialActive ||
-    allowDuringOpeningTutorial;
+        !TutorialManager.IsOpeningTutorialActive ||
+        allowDuringOpeningTutorial;
 
     public virtual void TryInteract(PlayerClass player)
     {
@@ -58,7 +58,7 @@ public class InteractableObject : MonoBehaviour
             return;
         }
 
-        GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
+        GameManager gameManager = UnityEngine.Object.FindFirstObjectByType<GameManager>();
         if (gameManager != null)
         {
             gameManager.InteractWithObject(this, player);
@@ -163,7 +163,7 @@ public class InteractableObject : MonoBehaviour
 
     private int GetFountainCost()
     {
-        GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
+        GameManager gameManager = UnityEngine.Object.FindFirstObjectByType<GameManager>();
         return gameManager == null ? 0 : gameManager.GetCurrentFountainCost();
     }
 
@@ -186,7 +186,7 @@ public class InteractableObject : MonoBehaviour
             "Cyclops  10   20   50 GP\n";
     }
 
-    private void AutoAssignIndicatorRenderer()
+    protected void AutoAssignIndicatorRenderer()
     {
         if (indicatorRenderer != null)
         {
@@ -201,7 +201,7 @@ public class InteractableObject : MonoBehaviour
     }
 
 #if UNITY_EDITOR
-    private void OnValidate()
+    protected virtual void OnValidate()
     {
         AutoAssignIndicatorRenderer();
     }

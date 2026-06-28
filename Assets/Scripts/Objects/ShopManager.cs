@@ -1,11 +1,9 @@
 using UnityEngine;
-using System.Collections;
 
 public class ShopManager : MonoBehaviour
 {
     public static ShopManager Instance;
 
-    // Ascending costs for each purchase
     public int[] upgradeCosts = { 5, 10, 20, 40, 80, 150 };
     public int atkUpgradeIndex = 0;
     public int defUpgradeIndex = 0;
@@ -21,13 +19,13 @@ public class ShopManager : MonoBehaviour
             Destroy(gameObject);
     }
 
-    public void TryPurchase(PlayerClass player, ShopType type)
+    public bool TryPurchase(PlayerClass player, ShopType type)
     {
         int cost = GetCurrentCost(type);
         if (player.money < cost)
         {
             Debug.Log($"Not enough gold! Needed: {cost}, Have: {player.money}");
-            return;
+            return false;
         }
 
         player.money -= cost;
@@ -47,6 +45,8 @@ public class ShopManager : MonoBehaviour
             Debug.Log("Purchased DEF upgrade!");
             PlayUpgradeSFX();
         }
+
+        return true;
     }
 
     public int GetCurrentCost(ShopType type)

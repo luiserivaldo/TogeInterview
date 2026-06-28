@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        audioManager = Object.FindFirstObjectByType<AudioManager>();
+        audioManager = UnityEngine.Object.FindFirstObjectByType<AudioManager>();
     }
 
     public void StartCombat(PlayerClass player, MonsterClass monster)
@@ -66,20 +67,19 @@ public class GameManager : MonoBehaviour
         switch (obj.objectType)
         {
             case InteractableObject.InteractableType.Fountain:
-                HandleFountain(player);
+                PromptFountainConfirmation(obj, player);
                 break;
 
             case InteractableObject.InteractableType.ShopAtk:
-                HandleShop(player, ShopManager.ShopType.ATK);
+                PromptShopConfirmation(obj, player, ShopManager.ShopType.ATK);
                 break;
 
             case InteractableObject.InteractableType.ShopDef:
-                HandleShop(player, ShopManager.ShopType.DEF);
+                PromptShopConfirmation(obj, player, ShopManager.ShopType.DEF);
                 break;
 
             case InteractableObject.InteractableType.Sign:
             case InteractableObject.InteractableType.NPC:
-                HandleSign(obj);
                 break;
         }
     }
@@ -91,7 +91,106 @@ public class GameManager : MonoBehaviour
             : fountainCosts[fountainCosts.Count - 1];
     }
 
-    private void HandleFountain(PlayerClass player)
+
+    private void PromptFountainConfirmation(InteractableObject obj, PlayerClass player)
+    {
+        ShowInteractionConfirmation(obj, "Use fountain?", () =>
+        {
+            bool success = HandleFountain(player);
+            if (!success)
+            {
+                ShowInteractionFeedback($"You need {GetCurrentFountainCost()} GP to use the fountain.");
+            }
+        });
+    }
+
+    private void PromptShopConfirmation(InteractableObject obj, PlayerClass player, ShopManager.ShopType type)
+    {
+        int currentCost = ShopManager.Instance != null ? ShopManager.Instance.GetCurrentCost(type) : 0;
+        string fallbackPrompt = type == ShopManager.ShopType.ATK
+            ? $"Buy +1 ATK for {currentCost} GP?"
+            : $"Buy +5 DEF for {currentCost} GP?";
+
+        ShowInteractionConfirmation(obj, fallbackPrompt, () =>
+        {
+            bool success = HandleShop(player, type);
+            if (!success)
+            {
+                ShowInteractionFeedback($"You need {currentCost} GP for that upgrade.");
+            }
+        });
+    }
+
+    private void ShowInteractionConfirmation(InteractableObject obj, string fallbackPrompt, Action confirmedAction)
+    {
+        if (UIManager.Instance == null)
+        {
+            return;
+        }
+
+        string prompt = BuildConfirmationPrompt(obj, fallbackPrompt);
+        SetGameplayLocked(true);
+
+        if (UIManager.Instance.IsBoardUiAvailable)
+        {
+            UIManager.Instance.ShowBoardChoice(
+                prompt,
+                () => ResolveInteractionConfirmation(confirmedAction),
+                CancelInteractionConfirmation,
+                "Yes",
+                "No");
+            return;
+        }
+
+        UIManager.Instance.HideMessage();
+        UIManager.Instance.HideBountyBoard();
+        UIManager.Instance.ShowDialogueUI();
+        UIManager.Instance.SetDialogueImage(null);
+        UIManager.Instance.SetDialogueText(prompt);
+        UIManager.Instance.SetDialogueChoicesVisible(true, "Yes", "No");
+        UIManager.Instance.BindDialogueChoiceHandlers(
+            () => ResolveInteractionConfirmation(confirmedAction),
+            CancelInteractionConfirmation);
+        UIManager.Instance.SelectDialogueDefaultAction();
+    }
+
+    private static string BuildConfirmationPrompt(InteractableObject obj, string fallbackPrompt)
+    {
+        string prompt = obj != null ? obj.GetInteractionMessage() : string.Empty;
+        if (string.IsNullOrWhiteSpace(prompt))
+        {
+            return fallbackPrompt;
+        }
+
+        return prompt + "\n\nConfirm?";
+    }
+
+    private void ResolveInteractionConfirmation(Action confirmedAction)
+    {
+        CancelInteractionConfirmation();
+        confirmedAction?.Invoke();
+        UIManager.Instance?.UpdateUI();
+    }
+
+    private void CancelInteractionConfirmation()
+    {
+        UIManager.Instance?.SetDialogueChoicesVisible(false);
+        UIManager.Instance?.HideDialogueUI();
+        UIManager.Instance?.HideBoardUI();
+        SetGameplayLocked(false);
+    }
+
+    private void ShowInteractionFeedback(string message)
+    {
+        if (string.IsNullOrWhiteSpace(message) || DialogueManager.Instance == null)
+        {
+            return;
+        }
+
+        DialogueManager.Instance.StartMessage(message, animateText: false);
+    }
+
+    private bool HandleFountain(PlayerClass player)
     {
         if (player == null)
         {
@@ -101,7 +200,7 @@ public class GameManager : MonoBehaviour
 
         if (player == null)
         {
-            return;
+            return false;
         }
 
         int currentCost = GetCurrentFountainCost();
@@ -113,26 +212,21 @@ public class GameManager : MonoBehaviour
             fountainUseCount++;
             PlaySFX("fountain");
             Debug.Log($"Fountain used. Cost: {currentCost}. Next use count: {fountainUseCount}");
+            return true;
         }
-        else
-        {
-            Debug.Log("Not enough gold to use the fountain.");
-        }
+
+        Debug.Log("Not enough gold to use the fountain.");
+        return false;
     }
 
-    private void HandleShop(PlayerClass player, ShopManager.ShopType type)
+    private bool HandleShop(PlayerClass player, ShopManager.ShopType type)
     {
         if (player == null || ShopManager.Instance == null)
         {
-            return;
+            return false;
         }
 
-        ShopManager.Instance.TryPurchase(player, type);
-    }
-
-    private void HandleSign(InteractableObject sign)
-    {
-        Debug.Log($"Interacted with {sign.name}.");
+        return ShopManager.Instance.TryPurchase(player, type);
     }
 
     public void GameOver()
@@ -176,7 +270,7 @@ public class GameManager : MonoBehaviour
     {
         if (audioManager == null)
         {
-            audioManager = Object.FindFirstObjectByType<AudioManager>();
+            audioManager = UnityEngine.Object.FindFirstObjectByType<AudioManager>();
         }
 
         return audioManager;
