@@ -209,7 +209,7 @@ public class InteractableObject : MonoBehaviour
 
     private bool TryShowBoardSequence()
     {
-        if (!useBoardUi || UIManager.Instance == null)
+        if (!ShouldPresentWithBoardUi() || UIManager.Instance == null || !UIManager.Instance.IsBoardUiAvailable)
         {
             return false;
         }
@@ -230,6 +230,40 @@ public class InteractableObject : MonoBehaviour
     private void HandleBoardClosed()
     {
         GameManager.SetGameplayLocked(false);
+    }
+
+
+    private bool ShouldPresentWithBoardUi()
+    {
+        return useBoardUi || objectType == InteractableType.Sign || HasBoardPageContent();
+    }
+
+    private bool HasBoardPageContent()
+    {
+        if (boardSequences == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < boardSequences.Count; i++)
+        {
+            BoardSequence sequence = boardSequences[i];
+            if (sequence == null || sequence.pages == null)
+            {
+                continue;
+            }
+
+            for (int j = 0; j < sequence.pages.Count; j++)
+            {
+                BoardPage page = sequence.pages[j];
+                if (page != null && !string.IsNullOrWhiteSpace(page.text))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private List<string> ExtractBoardPages(string sequenceId)

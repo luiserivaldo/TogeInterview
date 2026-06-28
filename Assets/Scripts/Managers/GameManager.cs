@@ -14,7 +14,7 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        audioManager = Object.FindFirstObjectByType<AudioManager>();
+        audioManager = UnityEngine.Object.FindFirstObjectByType<AudioManager>();
     }
 
     public void StartCombat(PlayerClass player, MonsterClass monster)
@@ -95,17 +95,14 @@ public class GameManager : MonoBehaviour
 
     private void PromptFountainConfirmation(InteractableObject obj, PlayerClass player)
     {
-        if (!TryShowBinaryBoardChoice(obj, "Use fountain?", () =>
-            {
-                bool success = HandleFountain(player);
-                if (!success)
-                {
-                    ShowInteractionFeedback($"You need {GetCurrentFountainCost()} GP to use the fountain.");
-                }
-            }))
+        ShowInteractionConfirmation(obj, "Use fountain?", () =>
         {
-            HandleFountain(player);
-        }
+            bool success = HandleFountain(player);
+            if (!success)
+            {
+                ShowInteractionFeedback($"You need {GetCurrentFountainCost()} GP to use the fountain.");
+            }
+        });
     }
 
     private void PromptShopConfirmation(InteractableObject obj, PlayerClass player, ShopManager.ShopType type)
@@ -115,55 +112,71 @@ public class GameManager : MonoBehaviour
             ? $"Buy +1 ATK for {currentCost} GP?"
             : $"Buy +5 DEF for {currentCost} GP?";
 
-        if (!TryShowBinaryBoardChoice(obj, fallbackPrompt, () =>
-            {
-                bool success = HandleShop(player, type);
-                if (!success)
-                {
-                    ShowInteractionFeedback($"You need {currentCost} GP for that upgrade.");
-                }
-            }))
+        ShowInteractionConfirmation(obj, fallbackPrompt, () =>
         {
-            HandleShop(player, type);
-        }
+            bool success = HandleShop(player, type);
+            if (!success)
+            {
+                ShowInteractionFeedback($"You need {currentCost} GP for that upgrade.");
+            }
+        });
     }
 
-    private bool TryShowBinaryBoardChoice(InteractableObject obj, string fallbackPrompt, Action confirmedAction)
+    private void ShowInteractionConfirmation(InteractableObject obj, string fallbackPrompt, Action confirmedAction)
     {
         if (UIManager.Instance == null)
         {
-            return false;
+            return;
         }
 
+        string prompt = BuildConfirmationPrompt(obj, fallbackPrompt);
+        SetGameplayLocked(true);
+
+        if (UIManager.Instance.IsBoardUiAvailable)
+        {
+            UIManager.Instance.ShowBoardChoice(
+                prompt,
+                () => ResolveInteractionConfirmation(confirmedAction),
+                CancelInteractionConfirmation,
+                "Yes",
+                "No");
+            return;
+        }
+
+        UIManager.Instance.HideMessage();
+        UIManager.Instance.HideBountyBoard();
+        UIManager.Instance.ShowDialogueUI();
+        UIManager.Instance.SetDialogueImage(null);
+        UIManager.Instance.SetDialogueText(prompt);
+        UIManager.Instance.SetDialogueChoicesVisible(true, "Yes", "No");
+        UIManager.Instance.BindDialogueChoiceHandlers(
+            () => ResolveInteractionConfirmation(confirmedAction),
+            CancelInteractionConfirmation);
+        UIManager.Instance.SelectDialogueDefaultAction();
+    }
+
+    private static string BuildConfirmationPrompt(InteractableObject obj, string fallbackPrompt)
+    {
         string prompt = obj != null ? obj.GetInteractionMessage() : string.Empty;
         if (string.IsNullOrWhiteSpace(prompt))
         {
-            prompt = fallbackPrompt;
-        }
-        else
-        {
-            prompt += "\n\nConfirm?";
+            return fallbackPrompt;
         }
 
-        SetGameplayLocked(true);
-        UIManager.Instance.ShowBoardChoice(
-            prompt,
-            () => ResolveBinaryBoardChoice(confirmedAction),
-            CancelBinaryBoardChoice,
-            "Yes",
-            "No");
-        return true;
+        return prompt + "\n\nConfirm?";
     }
 
-    private void ResolveBinaryBoardChoice(Action confirmedAction)
+    private void ResolveInteractionConfirmation(Action confirmedAction)
     {
-        CancelBinaryBoardChoice();
+        CancelInteractionConfirmation();
         confirmedAction?.Invoke();
         UIManager.Instance?.UpdateUI();
     }
 
-    private void CancelBinaryBoardChoice()
+    private void CancelInteractionConfirmation()
     {
+        UIManager.Instance?.SetDialogueChoicesVisible(false);
+        UIManager.Instance?.HideDialogueUI();
         UIManager.Instance?.HideBoardUI();
         SetGameplayLocked(false);
     }
@@ -263,7 +276,7 @@ public class GameManager : MonoBehaviour
     {
         if (audioManager == null)
         {
-            audioManager = Object.FindFirstObjectByType<AudioManager>();
+            audioManager = UnityEngine.Object.FindFirstObjectByType<AudioManager>();
         }
 
         return audioManager;

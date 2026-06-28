@@ -530,6 +530,12 @@ MonoBehaviour:
   actionPauseDuration: 0.8
   defeatFadeDuration: 0.4
   conclusionPauseDuration: 0.8
+  attackLungeDistance: 0.45
+  attackLungeDuration: 0.12
+  hitFlashDuration: 0.16
+  hitShakeMagnitude: 0.08
+  damageTint: {r: 1, g: 0.55, b: 0.55, a: 1}
+  defeatTint: {r: 0.62, g: 0.62, b: 0.62, a: 1}
 --- !u!4 &30908808
 Transform:
   m_ObjectHideFlags: 0
@@ -1905,6 +1911,20 @@ MonoBehaviour:
   yesButtonText: {fileID: 0}
   noButtonText: {fileID: 0}
   dialogueEffectAnchor: {fileID: 0}
+  boardUIRoot: {fileID: 0}
+  boardDialogueText: {fileID: 0}
+  boardActionGrid: {fileID: 0}
+  boardActionGridTwo: {fileID: 0}
+  boardLeftButton: {fileID: 0}
+  boardCenterButton: {fileID: 0}
+  boardRightButton: {fileID: 0}
+  boardYesButton: {fileID: 0}
+  boardNoButton: {fileID: 0}
+  boardLeftButtonText: {fileID: 0}
+  boardCenterButtonText: {fileID: 0}
+  boardRightButtonText: {fileID: 0}
+  boardYesButtonText: {fileID: 0}
+  boardNoButtonText: {fileID: 0}
 --- !u!1001 &180666483
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -60946,7 +60966,7 @@ Transform:
   m_GameObject: {fileID: 449100619}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 4.5, y: 1.5, z: 10}
+  m_LocalPosition: {x: 4.5, y: 2, z: 10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -61400,10 +61420,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.20942883
-    y: 0.06352087
-    width: 0.5802357
-    height: 0.8711434
+    x: 0
+    y: 0
+    width: 1
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 34
@@ -61654,10 +61674,10 @@ RectTransform:
   - {fileID: 693875181}
   m_Father: {fileID: 2031871962}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: -55, y: -25}
+  m_SizeDelta: {x: 160, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &559303970
 MonoBehaviour:
@@ -62771,7 +62791,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &702248822
 RectTransform:
   m_ObjectHideFlags: 0
@@ -62948,6 +62968,10 @@ PrefabInstance:
     - target: {fileID: 783714828081886206, guid: 2da7965e447cbdb46b7dbcf4bd4ed761, type: 3}
       propertyPath: m_Name
       value: shopDef
+      objectReference: {fileID: 0}
+    - target: {fileID: 7032349969157410684, guid: 2da7965e447cbdb46b7dbcf4bd4ed761, type: 3}
+      propertyPath: useBoardUi
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7032349969157410684, guid: 2da7965e447cbdb46b7dbcf4bd4ed761, type: 3}
       propertyPath: disableDuringOpeningTutorial
@@ -65968,6 +65992,8 @@ MonoBehaviour:
   sfxSource: {fileID: 1600594075}
   backgroundMusic: {fileID: 8300000, guid: 93c675e3771da3048af59a1247af2a4b, type: 3}
   sfxCombat: {fileID: 8300000, guid: 3b07bee3e44b6e940800b119a1aa13f9, type: 3}
+  sfxDamage: {fileID: 0}
+  sfxEnemyDefeat: {fileID: 0}
   sfxKill: {fileID: 8300000, guid: 2d6121874c0861949bec43d30b06380b, type: 3}
   sfxUpgrade: {fileID: 8300000, guid: 4a302feca294b87438d8f13af8d0cb43, type: 3}
   fountainBuy: {fileID: 8300000, guid: d4f9030b9d1d479478938c8215e92f0a, type: 3}
@@ -67291,6 +67317,10 @@ PrefabInstance:
     - target: {fileID: 49504006552336536, guid: 16ab92d39da1b9347b38223d483705f3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4304089929057473280, guid: 16ab92d39da1b9347b38223d483705f3, type: 3}
+      propertyPath: useBoardUi
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4525354122991174276, guid: 16ab92d39da1b9347b38223d483705f3, type: 3}
       propertyPath: m_Name
@@ -69285,10 +69315,10 @@ RectTransform:
   - {fileID: 264956921}
   m_Father: {fileID: 2031871962}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 155, y: -25}
+  m_SizeDelta: {x: 160, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1461057915
 MonoBehaviour:
@@ -78519,7 +78549,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1714519671
 RectTransform:
   m_ObjectHideFlags: 0
@@ -79729,11 +79759,59 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
       propertyPath: signType
-      value: 3
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
+      propertyPath: useBoardUi
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
       propertyPath: signMessage
       value: Respawn all monsters (5GP)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
+      propertyPath: boardSequences.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
+      propertyPath: boardSequences.Array.data[0].sequenceId
+      value: Sign 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
+      propertyPath: boardSequences.Array.data[1].sequenceId
+      value: Sign 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
+      propertyPath: boardSequences.Array.data[0].pages.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
+      propertyPath: boardSequences.Array.data[1].pages.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
+      propertyPath: boardSequences.Array.data[0].pages.Array.data[0].text
+      value: Page 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
+      propertyPath: boardSequences.Array.data[0].pages.Array.data[1].text
+      value: Page 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
+      propertyPath: boardSequences.Array.data[0].pages.Array.data[2].text
+      value: Page 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
+      propertyPath: boardSequences.Array.data[1].pages.Array.data[0].text
+      value: Page 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
+      propertyPath: boardSequences.Array.data[1].pages.Array.data[1].text
+      value: Page 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6110808861705505205, guid: 7d3142d9ba8353049a99f5c9b20dada1, type: 3}
+      propertyPath: boardSequences.Array.data[1].pages.Array.data[2].text
+      value: Page 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -80532,7 +80610,7 @@ Transform:
   m_GameObject: {fileID: 1855631741}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -1, z: 0}
+  m_LocalPosition: {x: 0, y: -0.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -81427,7 +81505,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2031871962
 RectTransform:
   m_ObjectHideFlags: 0
@@ -81991,6 +82069,10 @@ PrefabInstance:
     - target: {fileID: 783714828081886206, guid: 97b1e7963a724f86db5aebd14023ec8e, type: 3}
       propertyPath: m_Name
       value: shopATK
+      objectReference: {fileID: 0}
+    - target: {fileID: 7032349969157410684, guid: 97b1e7963a724f86db5aebd14023ec8e, type: 3}
+      propertyPath: useBoardUi
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7032349969157410684, guid: 97b1e7963a724f86db5aebd14023ec8e, type: 3}
       propertyPath: disableDuringOpeningTutorial

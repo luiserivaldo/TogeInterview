@@ -113,7 +113,7 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        player = Object.FindFirstObjectByType<PlayerClass>();
+        player = UnityEngine.Object.FindFirstObjectByType<PlayerClass>();
         UpdateUI();
     }
 
@@ -331,6 +331,12 @@ public class UIManager : MonoBehaviour
         BindCutsceneChoiceHandlers(yesAction, noAction);
     }
 
+
+    public bool IsBoardUiAvailable =>
+        boardUIRoot != null &&
+        boardDialogueText != null &&
+        ((boardActionGridTwo != null && boardYesButton != null && boardNoButton != null) ||
+         (boardActionGrid != null && boardRightButton != null));
 
     public void ShowBoardPages(IReadOnlyList<string> pages, Action onClosed = null, string previousLabel = "Previous", string nextLabel = "Next", string closeLabel = "Close")
     {
@@ -860,17 +866,61 @@ public class UIManager : MonoBehaviour
             ConfigureCutsceneNavigation();
         }
 
+        AutoWireBoardUi();
+    }
+
+    private void AutoWireBoardUi()
+    {
         boardUIRoot ??= FindSceneObject("BoardUI");
+        boardActionGrid ??= FindSceneObject("ActionButtonGrid");
+        boardActionGrid ??= FindSceneObject("ActionButtonGrid_Three");
+        boardActionGridTwo ??= FindSceneObject("ActionButtonGrid_Two");
+
+        if (boardUIRoot == null)
+        {
+            boardUIRoot = ResolveBoardUiRoot();
+        }
+
         if (boardUIRoot != null)
         {
             boardDialogueText ??= FindComponentInChildren<TextMeshProUGUI>(boardUIRoot.transform, "DialogueTextBox");
             boardActionGrid ??= FindChildRecursive(boardUIRoot.transform, "ActionButtonGrid")?.gameObject;
             boardActionGrid ??= FindChildRecursive(boardUIRoot.transform, "ActionButtonGrid_Three")?.gameObject;
             boardActionGridTwo ??= FindChildRecursive(boardUIRoot.transform, "ActionButtonGrid_Two")?.gameObject;
+        }
 
+        if (boardUIRoot != null)
+        {
             AssignBoardButtons();
             HideBoardUI();
         }
+    }
+
+    private GameObject ResolveBoardUiRoot()
+    {
+        Transform primaryAnchor = boardActionGridTwo != null
+            ? boardActionGridTwo.transform
+            : boardActionGrid != null ? boardActionGrid.transform : null;
+
+        if (primaryAnchor == null)
+        {
+            return null;
+        }
+
+        for (Transform current = primaryAnchor; current != null; current = current.parent)
+        {
+            bool hasPageGrid = FindChildRecursive(current, "ActionButtonGrid") != null ||
+                FindChildRecursive(current, "ActionButtonGrid_Three") != null;
+            bool hasChoiceGrid = FindChildRecursive(current, "ActionButtonGrid_Two") != null;
+            bool hasDialogue = FindChildRecursive(current, "DialogueTextBox") != null;
+
+            if (hasDialogue && (hasPageGrid || hasChoiceGrid))
+            {
+                return current.gameObject;
+            }
+        }
+
+        return null;
     }
 
     private void ConfigureCutsceneNavigation()

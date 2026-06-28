@@ -662,6 +662,8 @@ public class BattleManager : MonoBehaviour
                 AddCreatureRenderers(monster.gameObject);
             }
 
+            AddGroupedMonsterRenderers();
+
             foreach (SpriteRenderer renderer in hiddenCreatureRenderers)
             {
                 renderer.enabled = false;
@@ -675,6 +677,42 @@ public class BattleManager : MonoBehaviour
             if (renderer != null)
             {
                 renderer.enabled = true;
+            }
+        }
+    }
+
+    private void AddGroupedMonsterRenderers()
+    {
+        Transform[] allTransforms = UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsSortMode.None);
+        foreach (Transform sceneTransform in allTransforms)
+        {
+            if (sceneTransform == null || sceneTransform.name != "Monsters")
+            {
+                continue;
+            }
+
+            SpriteRenderer[] renderers = sceneTransform.GetComponentsInChildren<SpriteRenderer>(true);
+            foreach (SpriteRenderer renderer in renderers)
+            {
+                if (renderer == null)
+                {
+                    continue;
+                }
+
+                if (activePlayer != null && renderer.transform.IsChildOf(activePlayer.transform))
+                {
+                    continue;
+                }
+
+                if (activeMonster != null && renderer.transform.IsChildOf(activeMonster.transform))
+                {
+                    continue;
+                }
+
+                if (renderer.enabled && !hiddenCreatureRenderers.Contains(renderer))
+                {
+                    hiddenCreatureRenderers.Add(renderer);
+                }
             }
         }
     }
