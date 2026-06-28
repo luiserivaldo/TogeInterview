@@ -1,23 +1,7 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class InteractableObject : MonoBehaviour
 {
-    [Serializable]
-    public class BoardPage
-    {
-        [TextArea(3, 8)]
-        public string text = string.Empty;
-    }
-
-    [Serializable]
-    public class BoardSequence
-    {
-        public string sequenceId = "default";
-        public List<BoardPage> pages = new();
-    }
-
     private const string TutorialBlacksmithPrompt = "Go ahead, approach the monster!";
 
     public enum InteractableType
@@ -42,14 +26,6 @@ public class InteractableObject : MonoBehaviour
     [SerializeField] private Sprite dialogueImage;
     [SerializeField] protected bool allowDuringOpeningTutorial;
 
-    [Header("Board Presentation")]
-    [SerializeField] private bool useBoardUi;
-    [SerializeField] private string defaultBoardSequenceId = "default";
-    [SerializeField] private string boardPreviousLabel = "Previous";
-    [SerializeField] private string boardNextLabel = "Next";
-    [SerializeField] private string boardCloseLabel = "Close";
-    [SerializeField] private List<BoardSequence> boardSequences = new();
-
     public SignType signType = SignType.None;
     public InteractableType objectType;
 
@@ -61,7 +37,7 @@ public class InteractableObject : MonoBehaviour
 
     protected virtual string DefaultInteractionMessage => string.Empty;
 
-    private void Awake()
+    protected virtual void Awake()
     {
         AutoAssignIndicatorRenderer();
     }
@@ -89,11 +65,6 @@ public class InteractableObject : MonoBehaviour
         }
 
         if (GameManager.IsGameplayLocked)
-        {
-            return;
-        }
-
-        if (TryShowBoardSequence())
         {
             return;
         }
@@ -145,23 +116,6 @@ public class InteractableObject : MonoBehaviour
         return string.IsNullOrWhiteSpace(additionalMessage) ? baseMessage : additionalMessage;
     }
 
-    public IReadOnlyList<string> GetBoardPages(string sequenceId = null)
-    {
-        List<string> pages = ExtractBoardPages(string.IsNullOrWhiteSpace(sequenceId) ? defaultBoardSequenceId : sequenceId);
-        if (pages.Count > 0)
-        {
-            return pages;
-        }
-
-        string fallbackMessage = GetInteractionMessage();
-        if (string.IsNullOrWhiteSpace(fallbackMessage))
-        {
-            return Array.Empty<string>();
-        }
-
-        return new[] { fallbackMessage };
-    }
-
     public string GetSignMessage()
     {
         string baseMessage = "";
@@ -207,107 +161,6 @@ public class InteractableObject : MonoBehaviour
         return true;
     }
 
-    private bool TryShowBoardSequence()
-    {
-        if (!ShouldPresentWithBoardUi() || UIManager.Instance == null || !UIManager.Instance.IsBoardUiAvailable)
-        {
-            return false;
-        }
-
-        IReadOnlyList<string> pages = GetBoardPages();
-        if (pages.Count == 0)
-        {
-            return false;
-        }
-
-        UIManager.Instance.HideMessage();
-        UIManager.Instance.HideBountyBoard();
-        GameManager.SetGameplayLocked(true);
-        UIManager.Instance.ShowBoardPages(pages, HandleBoardClosed, boardPreviousLabel, boardNextLabel, boardCloseLabel);
-        return true;
-    }
-
-    private void HandleBoardClosed()
-    {
-        GameManager.SetGameplayLocked(false);
-    }
-
-
-    private bool ShouldPresentWithBoardUi()
-    {
-        return useBoardUi || objectType == InteractableType.Sign || HasBoardPageContent();
-    }
-
-    private bool HasBoardPageContent()
-    {
-        if (boardSequences == null)
-        {
-            return false;
-        }
-
-        for (int i = 0; i < boardSequences.Count; i++)
-        {
-            BoardSequence sequence = boardSequences[i];
-            if (sequence == null || sequence.pages == null)
-            {
-                continue;
-            }
-
-            for (int j = 0; j < sequence.pages.Count; j++)
-            {
-                BoardPage page = sequence.pages[j];
-                if (page != null && !string.IsNullOrWhiteSpace(page.text))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private List<string> ExtractBoardPages(string sequenceId)
-    {
-        List<string> pages = new();
-
-        BoardSequence matchedSequence = null;
-        for (int i = 0; i < boardSequences.Count; i++)
-        {
-            BoardSequence sequence = boardSequences[i];
-            if (sequence == null || sequence.pages == null || sequence.pages.Count == 0)
-            {
-                continue;
-            }
-
-            if (matchedSequence == null)
-            {
-                matchedSequence = sequence;
-            }
-
-            if (!string.IsNullOrWhiteSpace(sequenceId) && string.Equals(sequence.sequenceId, sequenceId, StringComparison.OrdinalIgnoreCase))
-            {
-                matchedSequence = sequence;
-                break;
-            }
-        }
-
-        if (matchedSequence == null)
-        {
-            return pages;
-        }
-
-        for (int i = 0; i < matchedSequence.pages.Count; i++)
-        {
-            BoardPage page = matchedSequence.pages[i];
-            if (page != null && !string.IsNullOrWhiteSpace(page.text))
-            {
-                pages.Add(page.text);
-            }
-        }
-
-        return pages;
-    }
-
     private int GetFountainCost()
     {
         GameManager gameManager = UnityEngine.Object.FindFirstObjectByType<GameManager>();
@@ -333,7 +186,7 @@ public class InteractableObject : MonoBehaviour
             "Cyclops  10   20   50 GP\n";
     }
 
-    private void AutoAssignIndicatorRenderer()
+    protected void AutoAssignIndicatorRenderer()
     {
         if (indicatorRenderer != null)
         {
@@ -348,7 +201,7 @@ public class InteractableObject : MonoBehaviour
     }
 
 #if UNITY_EDITOR
-    private void OnValidate()
+    protected virtual void OnValidate()
     {
         AutoAssignIndicatorRenderer();
     }

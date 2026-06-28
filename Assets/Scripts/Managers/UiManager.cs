@@ -335,8 +335,8 @@ public class UIManager : MonoBehaviour
     public bool IsBoardUiAvailable =>
         boardUIRoot != null &&
         boardDialogueText != null &&
-        ((boardActionGridTwo != null && boardYesButton != null && boardNoButton != null) ||
-         (boardActionGrid != null && boardRightButton != null));
+        boardLeftButton != null &&
+        boardRightButton != null;
 
     public void ShowBoardPages(IReadOnlyList<string> pages, Action onClosed = null, string previousLabel = "Previous", string nextLabel = "Next", string closeLabel = "Close")
     {
@@ -364,24 +364,14 @@ public class UIManager : MonoBehaviour
         activeBoardPageIndex = 0;
 
         ShowBoardRoot();
-
-        if (boardActionGrid != null)
-        {
-            boardActionGrid.SetActive(true);
-        }
-
-        if (boardActionGridTwo != null)
-        {
-            boardActionGridTwo.SetActive(false);
-        }
-
+        SetBoardChoiceButtonsVisible(false);
         BindButton(boardLeftButton, HandleBoardPreviousPressed, true);
         BindButton(boardCenterButton, null, true);
         BindButton(boardRightButton, HandleBoardAdvancePressed, true);
         RefreshBoardPage();
     }
 
-    public void ShowBoardChoice(string text, UnityAction yesAction, UnityAction noAction, string yesLabel = "Yes", string noLabel = "No")
+    public void ShowBoardChoice(string text, UnityAction leftAction, UnityAction rightAction, string leftLabel = "Left", string rightLabel = "Right")
     {
         boardCloseAction = null;
         activeBoardPages.Clear();
@@ -394,28 +384,21 @@ public class UIManager : MonoBehaviour
             boardDialogueText.text = text ?? string.Empty;
         }
 
-        if (boardActionGrid != null)
+        SetBoardChoiceButtonsVisible(true);
+
+        if (boardLeftButtonText != null)
         {
-            boardActionGrid.SetActive(false);
+            boardLeftButtonText.text = string.IsNullOrWhiteSpace(leftLabel) ? "Left" : leftLabel;
         }
 
-        if (boardActionGridTwo != null)
+        if (boardRightButtonText != null)
         {
-            boardActionGridTwo.SetActive(true);
+            boardRightButtonText.text = string.IsNullOrWhiteSpace(rightLabel) ? "Right" : rightLabel;
         }
 
-        if (boardYesButtonText != null)
-        {
-            boardYesButtonText.text = string.IsNullOrWhiteSpace(yesLabel) ? "Yes" : yesLabel;
-        }
-
-        if (boardNoButtonText != null)
-        {
-            boardNoButtonText.text = string.IsNullOrWhiteSpace(noLabel) ? "No" : noLabel;
-        }
-
-        BindButton(boardYesButton, yesAction, true);
-        BindButton(boardNoButton, noAction, true);
+        BindButton(boardLeftButton, leftAction, true);
+        BindButton(boardCenterButton, null, true);
+        BindButton(boardRightButton, rightAction, true);
         ConfigureBoardChoiceNavigation();
         SelectBoardChoiceDefaultAction();
     }
@@ -431,6 +414,7 @@ public class UIManager : MonoBehaviour
         BindButton(boardRightButton, null, true);
         BindButton(boardYesButton, null, true);
         BindButton(boardNoButton, null, true);
+        SetBoardChoiceButtonsVisible(false);
 
         if (boardDialogueText != null)
         {
@@ -556,15 +540,15 @@ public class UIManager : MonoBehaviour
 
     private void SelectBoardChoiceDefaultAction()
     {
-        if (boardYesButton != null && boardYesButton.gameObject.activeInHierarchy && boardYesButton.interactable)
+        if (boardLeftButton != null && boardLeftButton.gameObject.activeInHierarchy && boardLeftButton.interactable)
         {
-            SelectBattleAction(boardYesButton);
+            SelectBattleAction(boardLeftButton);
             return;
         }
 
-        if (boardNoButton != null && boardNoButton.gameObject.activeInHierarchy && boardNoButton.interactable)
+        if (boardRightButton != null && boardRightButton.gameObject.activeInHierarchy && boardRightButton.interactable)
         {
-            SelectBattleAction(boardNoButton);
+            SelectBattleAction(boardRightButton);
             return;
         }
 
@@ -579,7 +563,7 @@ public class UIManager : MonoBehaviour
 
     private void ConfigureBoardChoiceNavigation()
     {
-        ConfigureHorizontalNavigation(boardYesButton, boardNoButton);
+        ConfigureHorizontalNavigation(boardLeftButton, boardRightButton);
     }
 
     private static void ConfigureHorizontalNavigation(Button leftButton, Button rightButton)
@@ -872,35 +856,82 @@ public class UIManager : MonoBehaviour
     private void AutoWireBoardUi()
     {
         boardUIRoot ??= FindSceneObject("BoardUI");
-        boardActionGrid ??= FindSceneObject("ActionButtonGrid");
-        boardActionGrid ??= FindSceneObject("ActionButtonGrid_Three");
-        boardActionGridTwo ??= FindSceneObject("ActionButtonGrid_Two");
 
         if (boardUIRoot == null)
         {
+            boardLeftButton ??= FindSceneObject("LeftButton")?.GetComponent<Button>();
+            boardRightButton ??= FindSceneObject("RightButton")?.GetComponent<Button>();
+            boardActionGrid ??= FindSceneObject("ActionButtonGrid");
+            boardActionGrid ??= FindSceneObject("ActionButtonGrid_Three");
+            boardActionGridTwo ??= FindSceneObject("ActionButtonGrid_Two");
             boardUIRoot = ResolveBoardUiRoot();
         }
 
-        if (boardUIRoot != null)
+        if (boardUIRoot == null)
         {
-            boardDialogueText ??= FindComponentInChildren<TextMeshProUGUI>(boardUIRoot.transform, "DialogueTextBox");
-            boardActionGrid ??= FindChildRecursive(boardUIRoot.transform, "ActionButtonGrid")?.gameObject;
-            boardActionGrid ??= FindChildRecursive(boardUIRoot.transform, "ActionButtonGrid_Three")?.gameObject;
-            boardActionGridTwo ??= FindChildRecursive(boardUIRoot.transform, "ActionButtonGrid_Two")?.gameObject;
+            return;
         }
 
-        if (boardUIRoot != null)
+        boardDialogueText = ResolveBoardDialogueText();
+        boardActionGrid = ResolveBoardGrid(boardActionGrid, "ActionButtonGrid", "ActionButtonGrid_Three");
+        boardActionGridTwo = ResolveBoardGrid(boardActionGridTwo, "ActionButtonGrid_Two");
+        boardLeftButton = ResolveBoardButton(boardLeftButton, "LeftButton");
+        boardRightButton = ResolveBoardButton(boardRightButton, "RightButton");
+
+        AssignBoardButtons();
+        HideBoardUI();
+    }
+
+    private TextMeshProUGUI ResolveBoardDialogueText()
+    {
+        if (boardDialogueText != null && boardDialogueText.transform.IsChildOf(boardUIRoot.transform))
         {
-            AssignBoardButtons();
-            HideBoardUI();
+            return boardDialogueText;
         }
+
+        return FindComponentInChildren<TextMeshProUGUI>(boardUIRoot.transform, "DialogueTextBox");
+    }
+
+    private GameObject ResolveBoardGrid(GameObject currentGrid, params string[] gridNames)
+    {
+        if (currentGrid != null && currentGrid.transform.IsChildOf(boardUIRoot.transform))
+        {
+            return currentGrid;
+        }
+
+        for (int i = 0; i < gridNames.Length; i++)
+        {
+            Transform match = FindChildRecursive(boardUIRoot.transform, gridNames[i]);
+            if (match != null)
+            {
+                return match.gameObject;
+            }
+        }
+
+        return currentGrid;
+    }
+
+
+    private Button ResolveBoardButton(Button currentButton, string buttonName)
+    {
+        if (currentButton != null && currentButton.transform.IsChildOf(boardUIRoot.transform))
+        {
+            return currentButton;
+        }
+
+        Transform match = FindChildRecursive(boardUIRoot.transform, buttonName);
+        return match != null ? match.GetComponent<Button>() : currentButton;
     }
 
     private GameObject ResolveBoardUiRoot()
     {
-        Transform primaryAnchor = boardActionGridTwo != null
-            ? boardActionGridTwo.transform
-            : boardActionGrid != null ? boardActionGrid.transform : null;
+        Transform primaryAnchor = boardLeftButton != null
+            ? boardLeftButton.transform
+            : boardRightButton != null
+                ? boardRightButton.transform
+                : boardActionGridTwo != null
+                    ? boardActionGridTwo.transform
+                    : boardActionGrid != null ? boardActionGrid.transform : null;
 
         if (primaryAnchor == null)
         {
@@ -912,9 +943,11 @@ public class UIManager : MonoBehaviour
             bool hasPageGrid = FindChildRecursive(current, "ActionButtonGrid") != null ||
                 FindChildRecursive(current, "ActionButtonGrid_Three") != null;
             bool hasChoiceGrid = FindChildRecursive(current, "ActionButtonGrid_Two") != null;
+            bool hasLeftButton = FindChildRecursive(current, "LeftButton") != null;
+            bool hasRightButton = FindChildRecursive(current, "RightButton") != null;
             bool hasDialogue = FindChildRecursive(current, "DialogueTextBox") != null;
 
-            if (hasDialogue && (hasPageGrid || hasChoiceGrid))
+            if (hasDialogue && ((hasLeftButton && hasRightButton) || hasPageGrid || hasChoiceGrid))
             {
                 return current.gameObject;
             }
@@ -946,38 +979,35 @@ public class UIManager : MonoBehaviour
 
     private void AssignBoardButtons()
     {
-        List<Button> pageButtons = GetDirectChildButtons(boardActionGrid != null ? boardActionGrid.transform : null);
-        if (pageButtons.Count > 0)
+        if (boardLeftButton == null || boardRightButton == null)
         {
-            boardLeftButton ??= pageButtons[0];
-        }
+            List<Button> pageButtons = GetDirectChildButtons(boardActionGrid != null ? boardActionGrid.transform : null);
+            if (boardLeftButton == null && pageButtons.Count > 0)
+            {
+                boardLeftButton = pageButtons[0];
+            }
 
-        if (pageButtons.Count > 1)
-        {
-            boardCenterButton ??= pageButtons[1];
-        }
+            if (pageButtons.Count > 1)
+            {
+                boardCenterButton ??= pageButtons[1];
+            }
 
-        if (pageButtons.Count > 2)
-        {
-            boardRightButton ??= pageButtons[2];
-        }
-
-        List<Button> choiceButtons = GetDirectChildButtons(boardActionGridTwo != null ? boardActionGridTwo.transform : null);
-        if (choiceButtons.Count > 0)
-        {
-            boardYesButton ??= choiceButtons[0];
-        }
-
-        if (choiceButtons.Count > 1)
-        {
-            boardNoButton ??= choiceButtons[1];
+            if (boardRightButton == null)
+            {
+                if (pageButtons.Count > 2)
+                {
+                    boardRightButton = pageButtons[2];
+                }
+                else if (pageButtons.Count > 1)
+                {
+                    boardRightButton = pageButtons[1];
+                }
+            }
         }
 
         boardLeftButtonText ??= GetButtonLabel(boardLeftButton);
         boardCenterButtonText ??= GetButtonLabel(boardCenterButton);
         boardRightButtonText ??= GetButtonLabel(boardRightButton);
-        boardYesButtonText ??= GetButtonLabel(boardYesButton);
-        boardNoButtonText ??= GetButtonLabel(boardNoButton);
     }
 
     private static List<Button> GetDirectChildButtons(Transform root)
@@ -1003,6 +1033,27 @@ public class UIManager : MonoBehaviour
     private static TextMeshProUGUI GetButtonLabel(Button button)
     {
         return button != null ? button.GetComponentInChildren<TextMeshProUGUI>(true) : null;
+    }
+
+
+    private void SetBoardChoiceButtonsVisible(bool visible)
+    {
+        if (boardCenterButton != null)
+        {
+            boardCenterButton.gameObject.SetActive(false);
+        }
+
+        if (boardLeftButton != null)
+        {
+            boardLeftButton.gameObject.SetActive(visible);
+            boardLeftButton.interactable = visible;
+        }
+
+        if (boardRightButton != null)
+        {
+            boardRightButton.gameObject.SetActive(visible);
+            boardRightButton.interactable = visible;
+        }
     }
 
     private BattleUnitUI SetupBattleUnitUI(string objectName)
