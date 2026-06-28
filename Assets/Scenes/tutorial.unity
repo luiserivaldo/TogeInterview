@@ -78489,8 +78489,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6110808861705505205, guid: 46ce2cf4ed5840b999d0fdc5e29589df, type: 3}
       propertyPath: sections.Array.data[0].pages.Array.data[0].content
-      value: Move with your configured directional inputs. Press Submit to interact,
-        confirm choices, and advance dialogue.
+      value: Move with your configured directional inputs (WASD/Arrow Keys). Press
+        Submit/Enter to interact, confirm choices, and advance dialogue. Press X
+        or ESC to cancel.
       objectReference: {fileID: 0}
     - target: {fileID: 6110808861705505205, guid: 46ce2cf4ed5840b999d0fdc5e29589df, type: 3}
       propertyPath: sections.Array.data[0].pages.Array.data[1].content
@@ -78509,8 +78510,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6110808861705505205, guid: 46ce2cf4ed5840b999d0fdc5e29589df, type: 3}
       propertyPath: sections.Array.data[1].pages.Array.data[1].content
-      value: If the enemy survives, it hits back. DEF helps you stay in the fight
-        longer while you trade blows.
+      value: If the enemy survives, it hits back with its ATK. DEF helps you stay
+        in the fight longer while you trade blows.
       objectReference: {fileID: 0}
     - target: {fileID: 6110808861705505205, guid: 46ce2cf4ed5840b999d0fdc5e29589df, type: 3}
       propertyPath: sections.Array.data[1].pages.Array.data[2].content
